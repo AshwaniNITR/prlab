@@ -107,7 +107,7 @@ export default function Navbar() {
                   className="flex flex-col items-center gap-6 px-4"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  {["Home", "Events", "Projects", "Team", "Resources", "Contact"].map(
+                  {["Home","Team", "Research", "Publications", "Courses","Events","Contacts","Gallery"].map(
                     (item) => (
                       <motion.a
                         key={item}
@@ -190,7 +190,7 @@ export default function Navbar() {
                   className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  {["Home", "Events", "Projects", "Team", "Resources", "Contact"].map(
+                  {["Home","Team", "Research", "Publications", "Courses","Events","Contacts","Gallery"].map(
                     (item) => (
                       <motion.a
                         key={item}
