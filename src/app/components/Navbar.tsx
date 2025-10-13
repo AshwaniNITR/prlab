@@ -95,9 +95,9 @@ export default function Navbar() {
       name: "Publications", 
       href: "#publications",
       dropdown: [
-        { name: "Patent", href: "#patent" },
-        { name: "Journal", href: "#journal" },
-        { name: "Conference", href: "#conference" },
+        { name: "Patent", href: "/publications/patent" },
+        { name: "Journal", href: "/publications/journal" },
+        { name: "Conference", href: "/publications/conference" },
       ]
     },
     { name: "Courses", href: "#courses" },
