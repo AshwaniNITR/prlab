@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+// Types
+interface MenuItem {
+  name: string;
+  href: string;
+  dropdown?: DropdownItem[];
+}
+
+interface DropdownItem {
+  name: string;
+  href: string;
+}
 
 // Animation variants
 const ANIMATIONS = {
@@ -28,14 +39,29 @@ const ANIMATIONS = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
     exit: { opacity: 0, y: 20, transition: { duration: 0.3 } },
   },
+  dropdown: {
+    hidden: { opacity: 0, height: 0 },
+    visible: { 
+      opacity: 1, 
+      height: "auto",
+      transition: { duration: 0.3 }
+    },
+    exit: { 
+      opacity: 0, 
+      height: 0,
+      transition: { duration: 0.2 }
+    },
+  },
 };
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close on Esc
   useEffect(() => {
-    const onKey = (e:KeyboardEvent) => e.key === "Escape" && setIsOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -46,17 +72,150 @@ export default function Navbar() {
     return () => document.documentElement.classList.remove("overflow-hidden");
   }, [isOpen]);
 
-  const toggleMenu = () => setIsOpen((v) => !v);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleMenu = () => setIsOpen((v: boolean) => !v);
+  const toggleDropdown = () => setDropdownOpen((v: boolean) => !v);
+
+  const menuItems: MenuItem[] = [
+    { name: "Home", href: "#home" },
+    { name: "Team", href: "#team" },
+    { name: "Research", href: "#research" },
+    { 
+      name: "Publications", 
+      href: "#publications",
+      dropdown: [
+        { name: "Patent", href: "#patent" },
+        { name: "Journal", href: "#journal" },
+        { name: "Conference", href: "#conference" },
+      ]
+    },
+    { name: "Courses", href: "#courses" },
+    { name: "Events", href: "#events" },
+    { name: "Contacts", href: "#contacts" },
+    { name: "Gallery", href: "#gallery" },
+  ];
+
+  const handleMenuItemClick = (item: MenuItem) => {
+    if (!item.dropdown) {
+      setIsOpen(false);
+    }
+  };
+
+  const handleDropdownItemClick = () => {
+    setIsOpen(false);
+    setDropdownOpen(false);
+  };
+
+  const renderMenuItem = (item: MenuItem, isMobile: boolean = false) => {
+    if (item.dropdown) {
+      if (isMobile) {
+        // Mobile: Always expanded with blue line
+        return (
+          <div key={item.name} className="w-full">
+            {/* Publications main item */}
+            <motion.div
+              variants={ANIMATIONS.menuItem}
+              className="text-xl text-white py-2 px-4 rounded-lg"
+            >
+              {item.name}
+            </motion.div>
+            
+            {/* Dropdown items with blue line */}
+            <div className="ml-6 border-l-2 border-blue-400 pl-4 space-y-2 mt-2">
+              {item.dropdown.map((dropdownItem: DropdownItem) => (
+                <motion.a
+                  key={dropdownItem.name}
+                  href={dropdownItem.href}
+                  onClick={handleDropdownItemClick}
+                  className="block text-lg text-white/90 hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
+                  variants={ANIMATIONS.menuItem}
+                >
+                  {dropdownItem.name}
+                </motion.a>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // Desktop: Collapsible dropdown
+      return (
+        <div key={item.name} className="relative" ref={dropdownRef}>
+          <button
+            onClick={toggleDropdown}
+            className="text-xl md:text-2xl text-white hover:text-blue-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
+          >
+            {item.name}
+            <motion.span
+              animate={{ rotate: dropdownOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-sm"
+            >
+              ▼
+            </motion.span>
+          </button>
+          
+          <AnimatePresence>
+            {dropdownOpen && (
+              <motion.div
+                variants={ANIMATIONS.dropdown}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="absolute left-0 top-full mt-1 bg-gray-800/90 backdrop-blur-sm rounded-lg overflow-hidden min-w-[200px] border-l-4 border-gray-800/90"
+              >
+                <div className="py-2">
+                  {item.dropdown.map((dropdownItem: DropdownItem) => (
+                    <a
+                      key={dropdownItem.name}
+                      href={dropdownItem.href}
+                      onClick={handleDropdownItemClick}
+                      className="block text-white hover:text-blue-300 transition-colors py-3 px-6 hover:bg-white/5 border-l-2 border-blue-400/50 ml-2"
+                    >
+                      {dropdownItem.name}
+                    </a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    return (
+      <motion.a
+        key={item.name}
+        href={item.href}
+        variants={ANIMATIONS.menuItem}
+        className={`${isMobile ? 'text-xl text-white' : 'text-xl md:text-2xl text-white'} hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
+        onClick={() => handleMenuItemClick(item)}
+      >
+        {item.name}
+      </motion.a>
+    );
+  };
 
   return (
     <>
       {/* ---------------- MOBILE NAV ---------------- */}
-      <nav className="md:hidden fixed top-0 left-0 w-full bg-white/20  z-[60]">
+      <nav className="md:hidden fixed top-0 left-0 w-full bg-white/20 z-[60]">
         <div className="flex justify-between items-center h-16 px-4">
           {/* Logo */}
           <Image src="/nitrlogo.png" className="rounded-lg" alt="Logo" width={50} height={50} />
 
-          {/* Hamburger / Cross button (moves to top-right & higher z when open) */}
+          {/* Hamburger / Cross button */}
           <button
             onClick={toggleMenu}
             aria-label="Toggle menu"
@@ -95,7 +254,7 @@ export default function Navbar() {
                 exit="exit"
                 onClick={() => setIsOpen(false)}
               />
-              {/* Menu layer (below the floating button) */}
+              {/* Menu layer */}
               <motion.div
                 className="fixed inset-0 z-50 flex flex-col justify-center items-center"
                 variants={ANIMATIONS.menuContainer}
@@ -104,22 +263,10 @@ export default function Navbar() {
                 exit="exit"
               >
                 <motion.div
-                  className="flex flex-col items-center gap-6 px-4"
+                  className="flex flex-col items-start gap-4 px-6 w-full max-w-sm"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  {["Home","Team", "Research", "Publications", "Courses","Events","Contacts","Gallery"].map(
-                    (item) => (
-                      <motion.a
-                        key={item}
-                        href={`#${item.toLowerCase()}`}
-                        variants={ANIMATIONS.menuItem}
-                        className="text-xl text-white hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item}
-                      </motion.a>
-                    )
-                  )}
+                  {menuItems.map((item) => renderMenuItem(item, true))}
                 </motion.div>
               </motion.div>
             </>
@@ -138,21 +285,21 @@ export default function Navbar() {
           }`}
         >
           {/* Logo */}
-         <Image src="/nitrlogo.png" className="rounded-lg" alt="Logo" width={50} height={50} />
-          {/* Desktop hamburger (does NOT turn into cross; cross is at top-right) */}
-          {!isOpen?(
-            <button
-            onClick={toggleMenu}
-            aria-label="Open menu"
-            aria-expanded={isOpen}
-            className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20"
-          >
-            <span className="block w-6 h-0.5 bg-blue-400 mb-1.5" />
-            <span className="block w-6 h-0.5 bg-blue-400" />
-            <span className="block w-6 h-0.5 bg-blue-400 mt-1.5" />
-          </button>
-          ):(null)}
+          <Image src="/nitrlogo.png" className="rounded-lg" alt="Logo" width={50} height={50} />
           
+          {/* Desktop hamburger */}
+          {!isOpen && (
+            <button
+              onClick={toggleMenu}
+              aria-label="Open menu"
+              aria-expanded={isOpen}
+              className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20"
+            >
+              <span className="block w-6 h-0.5 bg-blue-400 mb-1.5" />
+              <span className="block w-6 h-0.5 bg-blue-400" />
+              <span className="block w-6 h-0.5 bg-blue-400 mt-1.5" />
+            </button>
+          )}
 
           <div className="h-6" />
         </div>
@@ -181,28 +328,16 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsOpen(false)}
                   aria-label="Close menu"
-                  className="absolute top-6 right-6 text-4xl text-white z-[60]"
+                  className="absolute top-6 right-6 text-4xl text-white z-[60] hover:text-blue-300 transition-colors"
                 >
                   &times;
                 </button>
 
                 <motion.div
-                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4"
+                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4 relative"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  {["Home","Team", "Research", "Publications", "Courses","Events","Contacts","Gallery"].map(
-                    (item) => (
-                      <motion.a
-                        key={item}
-                        href={`#${item.toLowerCase()}`}
-                        variants={ANIMATIONS.menuItem}
-                        className="text-xl md:text-2xl text-white hover:text-blue-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item}
-                      </motion.a>
-                    )
-                  )}
+                  {menuItems.map((item) => renderMenuItem(item))}
                 </motion.div>
               </motion.div>
             </>

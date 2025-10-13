@@ -65,7 +65,7 @@ const Hero = () => {
         <div className="max-w-7xl mx-auto text-center">
           <div className="p-6 rounded-lg">
             <p className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-wide leading-tight mb-8">
-              Pattern And Recognition Lab
+              Pattern, Recognition And Machine intelligence Lab
             </p>
            
             <div className="flex flex-col sm:flex-row justify-center items-start gap-2 text-sm md:text-lg">
