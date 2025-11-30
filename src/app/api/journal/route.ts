@@ -64,7 +64,7 @@ export async function GET(){
 
     try {
         const journals = await JournalModel.find().sort({ _id : -1})
-
+        console.log("Journals fetched successfully", journals.length)
         return Response.json(
             {
                 success:true,

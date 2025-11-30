@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface Journal extends Document {
     title: string;
-    author?: string;
+    authors?: string;
     journal?: string;
     year?: number;
     volume?: string;
@@ -18,7 +18,7 @@ const JournalSchema: Schema<Journal> = new Schema({
         index: true,
         trim: true
     },
-    author: {
+    authors: {
         type: String,
         trim: true,
         index: true

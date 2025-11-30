@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useParams } from 'next/navigation';
 
 // Type definitions
@@ -12,6 +12,7 @@ interface Patent {
   Inventors?: string;
   FilingDate?: string;
   GrantDate?: string;
+  data:Array<string>
 }
 
 interface Journal {
@@ -43,6 +44,7 @@ interface Conference {
 type PublicationItem = Patent | Journal | Conference;
 
 type PublicationType = 'patent' | 'journal' | 'conference';
+let patentData: Patent[];
 
 // Modal Component
 const PublicationModal = ({ 
@@ -220,52 +222,91 @@ const PublicationModal = ({
     </div>
   );
 };
-
 const Page = () => {
   const params = useParams();
   const pageType = params.slug as PublicationType;
   const [selectedItem, setSelectedItem] = useState<PublicationItem | null>(null);
+  const [patents, setPatents] = useState<Patent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+    const fetchPatents = async () => {
+      try {
+        setIsLoading(true);
+        const patentRes = await fetch('/api/patent');
+        const response = await patentRes.json();
+        
+        if (response.success && response.data) {
+          // Transform the API data to match the Patent interface
+          const transformedPatents: Patent[] = response.data.map((item: any, index: number) => ({
+            id: (index + 1).toString(),
+            title: item.title || '',
+            ApplNo: item.ApplNo,
+            Status: item.Status,
+            Inventors: item.Inventors,
+            FilingDate: item.FilingDate ? new Date(item.FilingDate).toLocaleDateString() : undefined,
+            GrantDate: item.GrantDate,
+            data: [] // Add empty array for the data property
+          }));
+          
+          setPatents(transformedPatents);
+        }
+      } catch (error) {
+        console.error('Error fetching patents:', error);
+        setPatents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (pageType === 'patent') {
+      fetchPatents();
+    } else {
+      setIsLoading(false);
+    }
+  }, [pageType]);
   
   // Data arrays with proper typing
-  const patents: Patent[] = [
-  {
-    id: "1",
-    title: "An Integrated System to Acquire and Process Digital Heart Sound Signal for Identification of Valvular Heart Diseases with Training, Self-test, Report Generation and Display Facilities",
-    ApplNo: "85/Kol/08",
-    Status: "Granted",
-    Inventors: "Goutam Saha, Samit Ari, and Suman Senapati",
-    FilingDate: "10/01/08",
-    GrantDate: "31/10/2019"
-  },
-  {
-    id: "2",
-    title: "GCROM: A system for surveillance mobile robot control using vision based static hand gesture recognition",
-    ApplNo: "202131002191",
-    Status: "Granted",
-    Inventors: "Jaya Prakash Sahoo, and Samit Ari",
-    FilingDate: "02 Feb 2021",
-    GrantDate: "21/03/2025"
-  },
-  {
-    id: "3",
-    title: "A mobile based Cardiac Health Monitoring System using deep Residual Network",
-    ApplNo: "202231071330",
-    Status: "First Evaluation Report Submitted",
-    Inventors: "Samit Ari, Allam Jaya Prakash and Sounak Samantray",
-    FilingDate: "10 Dec 2022",
-    GrantDate: "Pending"
-  },
-  {
-    id: "4",
-    title: "Unauthorized Person Detection using Thermal Imaging and Gait Recognition for Intra-Building Security",
-    ApplNo: "202331058606",
-    Status: "First Evaluation Report Submitted",
-    Inventors: "Samit Ari, Mohammad Iman Junaid, Narayan Prasad Sharma and Irshad Ali",
-    FilingDate: "31 August 2023",
-    GrantDate: "Pending"
-  }
-];
+//   const patents: Patent[] = [
+//   {
+//     id: "1",
+//     title: "An Integrated System to Acquire and Process Digital Heart Sound Signal for Identification of Valvular Heart Diseases with Training, Self-test, Report Generation and Display Facilities",
+//     ApplNo: "85/Kol/08",
+//     Status: "Granted",
+//     Inventors: "Goutam Saha, Samit Ari, and Suman Senapati",
+//     FilingDate: "10/01/08",
+//     GrantDate: "31/10/2019"
+//   },
+//   {
+//     id: "2",
+//     title: "GCROM: A system for surveillance mobile robot control using vision based static hand gesture recognition",
+//     ApplNo: "202131002191",
+//     Status: "Granted",
+//     Inventors: "Jaya Prakash Sahoo, and Samit Ari",
+//     FilingDate: "02 Feb 2021",
+//     GrantDate: "21/03/2025"
+//   },
+//   {
+//     id: "3",
+//     title: "A mobile based Cardiac Health Monitoring System using deep Residual Network",
+//     ApplNo: "202231071330",
+//     Status: "First Evaluation Report Submitted",
+//     Inventors: "Samit Ari, Allam Jaya Prakash and Sounak Samantray",
+//     FilingDate: "10 Dec 2022",
+//     GrantDate: "Pending"
+//   },
+//   {
+//     id: "4",
+//     title: "Unauthorized Person Detection using Thermal Imaging and Gait Recognition for Intra-Building Security",
+//     ApplNo: "202331058606",
+//     Status: "First Evaluation Report Submitted",
+//     Inventors: "Samit Ari, Mohammad Iman Junaid, Narayan Prasad Sharma and Irshad Ali",
+//     FilingDate: "31 August 2023",
+//     GrantDate: "Pending"
+//   }
+// ];
+   //const patents=patentData;
 
 
   // const journals: Journal[] = [
