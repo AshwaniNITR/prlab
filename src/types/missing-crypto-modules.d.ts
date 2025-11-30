@@ -1,0 +1,12 @@
+declare module "pbkdf2";
+declare module "bn.js";
+declare module "hash.js";
+declare module "elliptic";
+declare module "create-hash";
+declare module "create-hmac";
+declare module "browserify-sign";
+declare module "browserify-rsa";
+declare module "randombytes";
+declare module "cipher-base";
+declare module "miller-rabin";
+declare module "safer-buffer";

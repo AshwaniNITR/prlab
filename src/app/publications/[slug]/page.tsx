@@ -226,7 +226,7 @@ const Page = () => {
   const pageType = params.slug as PublicationType;
   const [selectedItem, setSelectedItem] = useState<PublicationItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  
   // Data arrays with proper typing
   const patents: Patent[] = [
   {
