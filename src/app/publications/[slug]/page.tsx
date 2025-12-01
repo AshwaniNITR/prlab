@@ -231,42 +231,55 @@ const Page = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-    const fetchPatents = async () => {
-      try {
-        setIsLoading(true);
-        const patentRes = await fetch('/api/patent');
-        const response = await patentRes.json();
-        
-        if (response.success && response.data) {
-          // Transform the API data to match the Patent interface
-          const transformedPatents: Patent[] = response.data.map((item: any, index: number) => ({
-            id: (index + 1).toString(),
-            title: item.title || '',
-            ApplNo: item.ApplNo,
-            Status: item.Status,
-            Inventors: item.Inventors,
-            FilingDate: item.FilingDate ? new Date(item.FilingDate).toLocaleDateString() : undefined,
-            GrantDate: item.GrantDate,
-            data: [] // Add empty array for the data property
-          }));
-          
-          setPatents(transformedPatents);
+      const fetchPatents = async () => {
+        try {
+          setIsLoading(true);
+          const patentRes = await fetch('/api/patent');
+          const response = await patentRes.json();
+
+          if (response.success && Array.isArray(response.data)) {
+            // Define a suitable type for the API item
+            type PatentApiItem = {
+              title?: string;
+              ApplNo?: string;
+              Status?: Patent['Status'];
+              Inventors?: string;
+              FilingDate?: string | number | null;
+              GrantDate?: string;
+            };
+
+            // Transform the API data to match the Patent interface
+            const transformedPatents: Patent[] = response.data.map(
+              (item: PatentApiItem, index: number) => ({
+                id: (index + 1).toString(),
+                title: item.title || '',
+                ApplNo: item.ApplNo,
+                Status: item.Status,
+                Inventors: item.Inventors,
+                FilingDate: item.FilingDate
+                  ? new Date(String(item.FilingDate)).toLocaleDateString()
+                  : undefined,
+                GrantDate: item.GrantDate,
+                data: []
+              })
+            );
+
+            setPatents(transformedPatents);
+          }
+        } catch (error) {
+          console.error('Error fetching patents:', error);
+          setPatents([]);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching patents:', error);
-        setPatents([]);
-      } finally {
+      };
+
+      if (pageType === 'patent') {
+        fetchPatents();
+      } else {
         setIsLoading(false);
       }
-    };
-
-    if (pageType === 'patent') {
-      fetchPatents();
-    } else {
-      setIsLoading(false);
-    }
-  }, [pageType]);
-  
+    }, [pageType]);
   // Data arrays with proper typing
 //   const patents: Patent[] = [
 //   {

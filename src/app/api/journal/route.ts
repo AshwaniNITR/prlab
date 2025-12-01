@@ -1,3 +1,4 @@
+// app/api/journal/route.ts
 import dbConnect from "@/lib/dbconnect";
 import JournalModel from "@/model/journal";
 
@@ -5,60 +6,109 @@ export async function POST(request: Request) {
     await dbConnect();
 
     try {
-        const { title, author, journal, year, volume, issue, pages, type, status } = await request.json()
+        const journalsData = await request.json();
 
-        const existingJournal = await JournalModel.findOne({ title, author, journal, year, volume })
+        // Check if it's a single journal or multiple journals
+        const isArray = Array.isArray(journalsData);
+        const journalsToProcess = isArray ? journalsData : [journalsData];
 
-        if (existingJournal) {
+        // Validate all journals first
+        const validationErrors: string[] = [];
+        
+        for (const journal of journalsToProcess) {
+            const { title, author, journal: journalName, year } = journal;
+            
+            // Check required fields
+            if (!title || !author || !journalName || !year) {
+                validationErrors.push(`Missing required fields for journal: ${title || 'Untitled'}`);
+                continue;
+            }
+
+            // Check for duplicates
+            const existingJournal = await JournalModel.findOne({ 
+                title, 
+                author, 
+                journal: journalName, 
+                year 
+            });
+            
+            if (existingJournal) {
+                validationErrors.push(`Journal "${title}" by ${author} (${year}) already exists`);
+            }
+        }
+
+        if (validationErrors.length > 0) {
             return Response.json(
                 {
                     success: false,
-                    message: "Journal with the same name and author already exists"
+                    message: "Validation failed",
+                    errors: validationErrors
                 },
                 {
                     status: 400
                 }
-            )
+            );
         }
 
-        const newJournal = new JournalModel({
-            title,
-            author: author || "",
-            journal: journal || "",
-            year: year || null,
-            volume: volume || "",
-            issue: issue || "",
-            pages: pages || "",
-            type: type || "",
-            status: status || ""
-        })
+        // Create all journals
+        const createdJournals = [];
+        for (const journalData of journalsToProcess) {
+            const { 
+                title, 
+                author, 
+                journal: journalName, 
+                year, 
+                volume, 
+                issue, 
+                pages, 
+                type, 
+                status 
+            } = journalData;
 
-        await newJournal.save()
+            const newJournal = new JournalModel({
+                title,
+                author: author || "",
+                journal: journalName || "",
+                year: year || null,
+                volume: volume || "",
+                issue: issue || "",
+                pages: pages || "",
+                type: type || "",
+                status: status || ""
+            });
+
+            await newJournal.save();
+            createdJournals.push(newJournal);
+        }
 
         return Response.json(
             {
                 success: true,
-                message: "Journal added successfully",
-                data:newJournal
+                message: isArray 
+                    ? `${createdJournals.length} journals added successfully`
+                    : "Journal added successfully",
+                data: isArray ? createdJournals : createdJournals[0]
             },
             {
                 status: 200
             }
-        )
+        );
     } catch (error) {
-        console.log("Internal server error", error)
+        console.log("Internal server error", error);
         return Response.json(
             {
                 success: false,
-                message: "Internal server error"
+                message: "Internal server error",
+                error: error instanceof Error ? error.message : "Unknown error"
             },
             {
                 status: 500
             }
-        )
+        );
     }
 }
 
+// Keep your existing GET function
 export async function GET(){
     await dbConnect()
 
