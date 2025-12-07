@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { c } from "framer-motion/dist/types.d-Cjd591yU";
 import Navbar from "@/app/components/Navbar";
 
 // Type definitions
@@ -660,12 +659,12 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [yearFilter, setYearFilter] = useState("all");
+  const [yearFilters, setYearFilters] = useState<string[]>([]);
   const [showYearMenu, setShowYearMenu] = useState(false);
   const [journals, setJournals] = useState<Journal[]>([]);
   const [conferences, setConferences] = useState<Conference[]>([]);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchPatents = async () => {
       try {
         setIsLoading(true);
@@ -755,24 +754,24 @@ const Page = () => {
         setIsLoading(false);
       }
     };
-    const fetchConference = async ()=>{
-      try{
+    const fetchConference = async () => {
+      try {
         setIsLoading(true);
         const conferenceRes = await fetch("/api/conference");
         const response = await conferenceRes.json();
         if (response.success && Array.isArray(response.data)) {
-          type ConferenceApiItem={
-              id: string;
-              title: string;
-              authors?: string;
-              conference?: string;
-              year?: string;
-              month?: string;
-              pages?: string;
-              location?: string;
-              type?: string;
-              status?: string;
-          }
+          type ConferenceApiItem = {
+            id: string;
+            title: string;
+            authors?: string;
+            conference?: string;
+            year?: string;
+            month?: string;
+            pages?: string;
+            location?: string;
+            type?: string;
+            status?: string;
+          };
           const transformedConferences: Conference[] = response.data.map(
             (item: ConferenceApiItem, index: number) => ({
               id: (index + 1).toString(),
@@ -797,14 +796,13 @@ const Page = () => {
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     if (pageType === "patent") {
       fetchPatents();
     } else if (pageType === "journal") {
       fetchJournal();
-    } 
-    else if(pageType === "conference") {
+    } else if (pageType === "conference") {
       fetchConference();
     } else {
       setIsLoading(false);
@@ -2375,22 +2373,22 @@ const Page = () => {
   ).sort((a, b) => Number(b) - Number(a));
 
   // Filter the data based on the search query
- const filteredData = data.filter((item) => {
-  const matchesQuery = Object.values(item)
-    .join(" ")
-    .toLowerCase()
-    .includes(query.toLowerCase());
+  const filteredData = data.filter((item) => {
+    const matchesQuery = Object.values(item)
+      .join(" ")
+      .toLowerCase()
+      .includes(query.toLowerCase());
 
-  const year = getItemYear(item);
-  const matchesYear = yearFilter === "all" || year === yearFilter;
+    const year = getItemYear(item);
+    const matchesYear =
+      yearFilters.length === 0 || (year && yearFilters.includes(year));
 
-  return matchesQuery && matchesYear;
-});
-
+    return matchesQuery && matchesYear;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
-      <Navbar/>
+      <Navbar />
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -2453,36 +2451,67 @@ const Page = () => {
 
             {/* Dropdown Menu */}
             {showYearMenu && (
-              <div className="absolute top-12 right-0 bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-40 z-50">
+              <div className="absolute top-12 right-0 bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-44 z-50 max-h-60 overflow-y-auto">
+                {/* Clear All option */}
+                <button
+                  onClick={() => setYearFilters([])}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                >
+                  Clear All
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+
+                {/* All Years option */}
                 <button
                   onClick={() => {
-                    setYearFilter("all");
+                    setYearFilters([]); // resets all
                     setShowYearMenu(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
-                    yearFilter === "all"
-                      ? "text-blue-600 font-semibold"
+                  className={`flex items-center w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
+                    yearFilters.length === 0
+                      ? "bg-blue-50 text-blue-700 font-semibold"
                       : "text-gray-700"
                   }`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={yearFilters.length === 0}
+                    readOnly
+                    className="mr-2 accent-blue-600"
+                  />
                   All Years
                 </button>
-                {availableYears.map((year) => (
-                  <button
-                    key={year}
-                    onClick={() => {
-                      setYearFilter(year);
-                      setShowYearMenu(false);
-                    }}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
-                      yearFilter === year
-                        ? "text-blue-600 font-semibold"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
+
+                {/* Year list */}
+                {availableYears.map((year) => {
+                  const isSelected = yearFilters.includes(year);
+                  return (
+                    <button
+                      key={year}
+                      onClick={() => {
+                        setYearFilters(
+                          (prev) =>
+                            isSelected
+                              ? prev.filter((y) => y !== year) // unselect
+                              : [...prev, year] // select
+                        );
+                      }}
+                      className={`flex items-center w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
+                        isSelected
+                          ? "bg-blue-50 text-blue-700 font-semibold"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        readOnly
+                        className="mr-2 accent-blue-600"
+                      />
+                      {year}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
