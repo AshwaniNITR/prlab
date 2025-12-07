@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { c } from "framer-motion/dist/types.d-Cjd591yU";
 import Navbar from "@/app/components/Navbar";
 
 // Type definitions
@@ -45,9 +46,8 @@ interface Conference {
 type PublicationItem = Patent | Journal | Conference;
 
 type PublicationType = "patent" | "journal" | "conference";
-//let patentData: Patent[];
+let patentData: Patent[];
 
-// Modal Component
 // Modal Component
 const PublicationModal = ({
   item,
@@ -659,10 +659,13 @@ const Page = () => {
   const [patents, setPatents] = useState<Patent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [showYearMenu, setShowYearMenu] = useState(false);
   const [journals, setJournals] = useState<Journal[]>([]);
   const [conferences, setConferences] = useState<Conference[]>([]);
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchPatents = async () => {
       try {
         setIsLoading(true);
@@ -807,377 +810,464 @@ const Page = () => {
       setIsLoading(false);
     }
   }, [pageType]);
-  //   const journals : Journal[]= [
+  // Data arrays with proper typing
+  //   const patents: Patent[] = [
   //   {
   //     id: "1",
-  //     title: "Empirical wavelet transform and deep learning-based technique for ECG beat classification",
-  //     authors: "A. J. Prakash and S. Ari",
-  //     journal: "Advanced Methods in Biomedical Signal Processing and Analysis, Elsevier",
-  //     year: "2022",
-  //     pages: "109-128",
-  //     type: "Book Chapter"
+  //     title: "An Integrated System to Acquire and Process Digital Heart Sound Signal for Identification of Valvular Heart Diseases with Training, Self-test, Report Generation and Display Facilities",
+  //     ApplNo: "85/Kol/08",
+  //     Status: "Granted",
+  //     Inventors: "Goutam Saha, Samit Ari, and Suman Senapati",
+  //     FilingDate: "10/01/08",
+  //     GrantDate: "31/10/2019"
   //   },
   //   {
   //     id: "2",
-  //     title: "Patient-specific ECG beat classification using EMD and deep learning-based technique",
-  //     authors: "A. J. Prakash and S. Ari",
-  //     journal: "Advanced Methods in Biomedical Signal Processing and Analysis, Elsevier",
-  //     year: "2022",
-  //     pages: "87-108",
-  //     type: "Book Chapter"
+  //     title: "GCROM: A system for surveillance mobile robot control using vision based static hand gesture recognition",
+  //     ApplNo: "202131002191",
+  //     Status: "Granted",
+  //     Inventors: "Jaya Prakash Sahoo, and Samit Ari",
+  //     FilingDate: "02 Feb 2021",
+  //     GrantDate: "21/03/2025"
   //   },
   //   {
   //     id: "3",
-  //     title: "AdU-Net: Glacial lake extraction and outburst risk assessment using satellite imagery",
-  //     authors: "J. Thati, A. J. Prakash, and S. Ari",
-  //     journal: "IEEE Transactions on Artificial Intelligence",
-  //     year: "2025",
-  //     type: "International Journal"
+  //     title: "A mobile based Cardiac Health Monitoring System using deep Residual Network",
+  //     ApplNo: "202231071330",
+  //     Status: "First Evaluation Report Submitted",
+  //     Inventors: "Samit Ari, Allam Jaya Prakash and Sounak Samantray",
+  //     FilingDate: "10 Dec 2022",
+  //     GrantDate: "Pending"
   //   },
   //   {
   //     id: "4",
-  //     title: "MalNet-DAF: Dual-attentive fusion deep learning model for malaria parasite classification",
-  //     authors: "K. K. Patro, A. J. Prakash, S. Madarapu, S. Ari, S. Routray, A. Mukherjee, and S. Mishra",
+  //     title: "Unauthorized Person Detection using Thermal Imaging and Gait Recognition for Intra-Building Security",
+  //     ApplNo: "202331058606",
+  //     Status: "First Evaluation Report Submitted",
+  //     Inventors: "Samit Ari, Mohammad Iman Junaid, Narayan Prasad Sharma and Irshad Ali",
+  //     FilingDate: "31 August 2023",
+  //     GrantDate: "Pending"
+  //   }
+  // ];
+  //const patents=patentData;
+
+  // const journals: Journal[] = [
+  //   // ... your journals data
+  // ];
+  // const journals: Journal[] = [
+  //   {
+  //     id: "1",
+  //     title:
+  //       "Empirical wavelet transform and deep learning-based technique for ECG beat classification",
+  //     authors: "A. J. Prakash and S. Ari",
+  //     journal:
+  //       "Advanced Methods in Biomedical Signal Processing and Analysis, Elsevier",
+  //     year: "2022",
+  //     pages: "109-128",
+  //     type: "Book Chapter",
+  //   },
+  //   {
+  //     id: "2",
+  //     title:
+  //       "Patient-specific ECG beat classification using EMD and deep learning-based technique",
+  //     authors: "A. J. Prakash and S. Ari",
+  //     journal:
+  //       "Advanced Methods in Biomedical Signal Processing and Analysis, Elsevier",
+  //     year: "2022",
+  //     pages: "87-108",
+  //     type: "Book Chapter",
+  //   },
+  //   {
+  //     id: "3",
+  //     title:
+  //       "AdU-Net: Glacial lake extraction and outburst risk assessment using satellite imagery",
+  //     authors: "J. Thati, A. J. Prakash, and S. Ari",
+  //     journal: "IEEE Transactions on Artificial Intelligence",
+  //     year: "2025",
+  //     type: "International Journal",
+  //   },
+  //   {
+  //     id: "4",
+  //     title:
+  //       "MalNet-DAF: Dual-attentive fusion deep learning model for malaria parasite classification",
+  //     authors:
+  //       "K. K. Patro, A. J. Prakash, S. Madarapu, S. Ari, S. Routray, A. Mukherjee, and S. Mishra",
   //     journal: "IEEE Journal of Biomedical and Health Informatics",
   //     year: "2025",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "5",
-  //     title: "AFMNet: Adaptive feature modulation network for classification of white blood cells",
+  //     title:
+  //       "AFMNet: Adaptive feature modulation network for classification of white blood cells",
   //     authors: "S. Aryal, S. K. Naik, S. Madarapu, and S. Ari",
   //     journal: "Biocybernetics and Biomedical Engineering",
   //     year: "2025",
   //     volume: "45",
   //     issue: "3",
   //     pages: "539-548",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "6",
-  //     title: "HLS-compiled PYNQ-based cardiac arrhythmia detection system leveraging quantized ECG beat images",
+  //     title:
+  //       "HLS-compiled PYNQ-based cardiac arrhythmia detection system leveraging quantized ECG beat images",
   //     authors: "S. Mangaraj, K. Mahapatra, and S. Ari",
   //     journal: "Biomedical Signal Processing and Control",
   //     year: "2025",
   //     volume: "109",
   //     pages: "108063",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "7",
-  //     title: "CRA-Net: Cross reverse attention network for classification of neuro-degenerative diseases based on gait analysis",
+  //     title:
+  //       "CRA-Net: Cross reverse attention network for classification of neuro-degenerative diseases based on gait analysis",
   //     authors: "D. Bodepu, M. I. Junaid, S. Madarapu, J. P. Sahoo, and S. Ari",
   //     journal: "Biomedical Signal Processing and Control",
   //     year: "2025",
   //     volume: "108",
   //     pages: "107886",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "8",
-  //     title: "Human gait recognition using dense residual network and hybrid attention technique with back-flow mechanism",
+  //     title:
+  //       "Human gait recognition using dense residual network and hybrid attention technique with back-flow mechanism",
   //     authors: "M. I. Junaid, S. Madarapu, and S. Ari",
   //     journal: "Digital Signal Processing",
   //     year: "2025",
   //     pages: "105401",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "9",
-  //     title: "Diabetic retinopathy grading based on multi-scale residual network and cross-attention module",
+  //     title:
+  //       "Diabetic retinopathy grading based on multi-scale residual network and cross-attention module",
   //     authors: "A. K. Singh, S. Madarapu, and S. Ari",
   //     journal: "Digital Signal Processing",
   //     year: "2025",
   //     volume: "157",
   //     pages: "104888",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "10",
-  //     title: "Human gait recognition using attention based convolutional network with sequential learning",
+  //     title:
+  //       "Human gait recognition using attention based convolutional network with sequential learning",
   //     authors: "M. I. Junaid, S. Madarapu, and S. Ari",
   //     journal: "Signal, Image and Video Processing (SIViP)",
   //     year: "2025",
   //     volume: "19",
   //     pages: "157",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "11",
-  //     title: "Human gait recognition using joint spatiotemporal modulation in deep convolutional neural networks",
+  //     title:
+  //       "Human gait recognition using joint spatiotemporal modulation in deep convolutional neural networks",
   //     authors: "M. I. Junaid, J. P. Allam, S. Ari",
   //     journal: "Journal of Visual Communication and Image Representation",
   //     year: "2024",
   //     volume: "105",
   //     pages: "104322",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "12",
-  //     title: "C2x-FNet: Cascaded Dense Block with Two-fold Cross Feature Enhancement Module for Diabetic Retinopathy Grading",
+  //     title:
+  //       "C2x-FNet: Cascaded Dense Block with Two-fold Cross Feature Enhancement Module for Diabetic Retinopathy Grading",
   //     authors: "S. Madarapu, S. Ari, and K. Mahapatra",
   //     journal: "IEEE Transactions on Instrumentation and Measurement",
   //     year: "2024",
   //     status: "Accepted",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "13",
-  //     title: "DFCAFNet: Dual-feature co-attentive fusion network for diabetic retinopathy grading",
+  //     title:
+  //       "DFCAFNet: Dual-feature co-attentive fusion network for diabetic retinopathy grading",
   //     authors: "S. Madarapu, S. Ari, and K. Mahapatra",
   //     journal: "Biomedical Signal Processing and Control",
   //     year: "2024",
   //     volume: "96",
   //     pages: "106564",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "14",
-  //     title: "A Multi-Resolution Convolutional Attention Network for Efficient Diabetic Retinopathy Classification",
+  //     title:
+  //       "A Multi-Resolution Convolutional Attention Network for Efficient Diabetic Retinopathy Classification",
   //     authors: "S. Madarapu, S. Ari, and Kamalakanta Mahapatra",
   //     journal: "Computers and Electrical Engineering",
   //     year: "2024",
   //     volume: "117",
   //     pages: "109243",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "15",
-  //     title: "Multi-stream Bi-GRU network to extract a comprehensive feature set for ECG signal classification",
+  //     title:
+  //       "Multi-stream Bi-GRU network to extract a comprehensive feature set for ECG signal classification",
   //     authors: "J. P. Allam, S. P. Sahoo, and S. Ari",
   //     journal: "Biomedical Signal Processing and Control",
   //     year: "2024",
   //     volume: "92",
   //     pages: "106097",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "16",
-  //     title: "A deep integrative approach for diabetic retinopathy classification with synergistic channel-spatial and self-attention mechanism",
+  //     title:
+  //       "A deep integrative approach for diabetic retinopathy classification with synergistic channel-spatial and self-attention mechanism",
   //     authors: "S. Madarapu, S. Ari, and K. K. Mahapatra",
   //     journal: "Expert Systems with Applications",
   //     year: "2024",
   //     volume: "123",
   //     pages: "523",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "17",
-  //     title: "DUNet: Dual U-Net Architecture for Ocean Eddies Detection and Tracking",
+  //     title:
+  //       "DUNet: Dual U-Net Architecture for Ocean Eddies Detection and Tracking",
   //     authors: "S. J. Saida and S. Ari",
-  //     journal: "IEEE Transactions on Emerging Topics in Computational Intelligence",
+  //     journal:
+  //       "IEEE Transactions on Emerging Topics in Computational Intelligence",
   //     year: "2024",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "18",
-  //     title: "Deep convolution neural network based semantic segmentation for ocean eddy detection",
+  //     title:
+  //       "Deep convolution neural network based semantic segmentation for ocean eddy detection",
   //     authors: "S. J. Saida, S. P. Sahoo, and S. Ari",
   //     journal: "Expert Systems with Applications",
   //     year: "2023",
   //     volume: "219",
   //     pages: "119646",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "19",
-  //     title: "DeReFNet: Dual-stream Dense Residual Fusion Network for static hand gesture recognition",
+  //     title:
+  //       "DeReFNet: Dual-stream Dense Residual Fusion Network for static hand gesture recognition",
   //     authors: "J. P. Sahoo, S. P. Sahoo, S. Ari, and S. K. Patra",
   //     journal: "Displays",
   //     year: "2023",
   //     volume: "77",
   //     pages: "102388",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "20",
-  //     title: "Hand Gesture Recognition Using Densely Connected Deep Residual Network and Channel Attention Module for Mobile Robot Control",
+  //     title:
+  //       "Hand Gesture Recognition Using Densely Connected Deep Residual Network and Channel Attention Module for Mobile Robot Control",
   //     authors: "J. P. Sahoo, S. P. Sahoo, S. Ari, and S. K. Patra",
   //     journal: "IEEE Transactions on Instrumentation and Measurement",
   //     year: "2023",
   //     volume: "72",
   //     pages: "1-11",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "21",
-  //     title: "A deformable CNN architecture for predicting clinical acceptability of ECG signal",
+  //     title:
+  //       "A deformable CNN architecture for predicting clinical acceptability of ECG signal",
   //     authors: "A. Jaya Prakash, S. Samantray, S. P. Sahoo, and S. Ari",
   //     journal: "Biocybernetics and Biomedical Engineering",
   //     year: "2023",
   //     volume: "43",
   //     issue: "1",
   //     pages: "335-351",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "22",
-  //     title: "MU-net: modified U-net architecture for automatic ocean Eddy detection",
+  //     title:
+  //       "MU-net: modified U-net architecture for automatic ocean Eddy detection",
   //     authors: "S. J. Saida, and S. Ari",
   //     journal: "IEEE Geoscience and Remote Sensing Letters",
   //     year: "2022",
   //     volume: "19",
   //     pages: "1-5",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "23",
-  //     title: "DISNet: A sequential learning framework to handle occlusion in human action recognition with video acquisition sensors",
+  //     title:
+  //       "DISNet: A sequential learning framework to handle occlusion in human action recognition with video acquisition sensors",
   //     authors: "S. P. Sahoo, S. Modalavalasa, and S. Ari",
   //     journal: "Digital Signal Processing",
   //     year: "2022",
   //     volume: "131",
   //     pages: "103763",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "24",
-  //     title: "GLeSI: A system for extraction of glacial lakes using satellite imagery",
+  //     title:
+  //       "GLeSI: A system for extraction of glacial lakes using satellite imagery",
   //     authors: "J. Thati, and S. Ari",
   //     journal: "Concurrency and Computation: Practice and Experience",
   //     year: "2022",
   //     volume: "34",
   //     issue: "23",
   //     pages: "e7184",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "25",
-  //     title: "A systematic extraction of glacial lakes for satellite imagery using deep learning based technique",
+  //     title:
+  //       "A systematic extraction of glacial lakes for satellite imagery using deep learning based technique",
   //     authors: "J. Thati, and S. Ari",
   //     journal: "Measurement",
   //     year: "2022",
   //     volume: "192",
   //     pages: "110858",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "26",
-  //     title: "RBI-2RCNN: Residual Block Intensity Feature using a Two-stage Residual Convolutional Neural Network for Static Hand Gesture Recognition",
+  //     title:
+  //       "RBI-2RCNN: Residual Block Intensity Feature using a Two-stage Residual Convolutional Neural Network for Static Hand Gesture Recognition",
   //     authors: "J. P. Sahoo, S. P. Sahoo, S. Ari, and S. K. Patra",
   //     journal: "Signal Image and Video processing",
   //     year: "2022",
   //     volume: "16",
   //     issue: "8",
   //     pages: "2019-27",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "27",
-  //     title: "Brain-Computer Interface Speller System for Alternative Communication: A Review",
+  //     title:
+  //       "Brain-Computer Interface Speller System for Alternative Communication: A Review",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "Innovation and Research in BioMedical engineering (IRBM)",
   //     year: "2021",
   //     volume: "43",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "28",
-  //     title: "Radix-8 Modified Booth Fixed-Width Signed Multipliers with Error Compensation",
+  //     title:
+  //       "Radix-8 Modified Booth Fixed-Width Signed Multipliers with Error Compensation",
   //     authors: "G. R. Locharla, K. K. Mahapatra, and S. Ari",
   //     journal: "Arabian Journal for Science and Engineering",
   //     year: "2021",
   //     volume: "46",
   //     issue: "2",
   //     pages: "1115-1125",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "29",
-  //     title: "SpEC: A system for patient specific ECG beat classification using deep residual network",
+  //     title:
+  //       "SpEC: A system for patient specific ECG beat classification using deep residual network",
   //     authors: "A. Jaya Prakash, S. Samatray, and S. Ari",
   //     journal: "Biocybernetics and Biomedical Engineering",
   //     year: "2021",
   //     volume: "40",
   //     issue: "4",
   //     pages: "1446-1457",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "30",
-  //     title: "AR-Depth: A Novel Framework for Human Action Recognition Using Sequential Learning and Depth Estimated History Images",
+  //     title:
+  //       "AR-Depth: A Novel Framework for Human Action Recognition Using Sequential Learning and Depth Estimated History Images",
   //     authors: "S. P. Sahoo, S. Ari, K. K. Mahapatra, and S. P. Mohanty",
-  //     journal: "IEEE Transactions on Emerging Topics in Computational Intelligence",
+  //     journal:
+  //       "IEEE Transactions on Emerging Topics in Computational Intelligence",
   //     year: "2020",
   //     volume: "5",
   //     issue: "5",
   //     pages: "813-25",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "31",
-  //     title: "Change Detection in Landsat Images using Unsupervised Learning and Multilevel Clustering",
+  //     title:
+  //       "Change Detection in Landsat Images using Unsupervised Learning and Multilevel Clustering",
   //     authors: "N. Gupta, S. Ari, and N. Panigrahi",
-  //     journal: "IEEE Transactions on Emerging Topics in Computational Intelligence",
+  //     journal:
+  //       "IEEE Transactions on Emerging Topics in Computational Intelligence",
   //     year: "2019",
   //     volume: "5",
   //     issue: "2",
   //     pages: "284-97",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "32",
-  //     title: "MsCNN: A Deep Learning Framework for P300 Based Brain-Computer Interface Speller",
+  //     title:
+  //       "MsCNN: A Deep Learning Framework for P300 Based Brain-Computer Interface Speller",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "IEEE Transactions on Medical Robotics and Bionics",
   //     year: "2019",
   //     volume: "2",
   //     issue: "1",
   //     pages: "86-93",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "33",
-  //     title: "P300 based character recognition using sparse autoencoder with ensemble of SVMs",
+  //     title:
+  //       "P300 based character recognition using sparse autoencoder with ensemble of SVMs",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "Biocybernetics and Biomedical Engineering",
   //     year: "2019",
   //     volume: "39",
   //     issue: "4",
   //     pages: "956-966",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "34",
-  //     title: "A Deep Learning Architecture for P300 Detection with Brain-Computer Interface Application",
+  //     title:
+  //       "A Deep Learning Architecture for P300 Detection with Brain-Computer Interface Application",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "Innovation and Research in BioMedical engineering (IRBM)",
   //     year: "2019",
   //     volume: "41",
   //     issue: "1",
   //     pages: "31-8",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "35",
-  //     title: "P300 based character recognition using convolutional neural network and support vector machine",
+  //     title:
+  //       "P300 based character recognition using convolutional neural network and support vector machine",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "Biomedical Signal Processing and Control",
   //     year: "2019",
   //     volume: "55",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "36",
-  //     title: "An overview of the research work on multispectral imaging, hand gesture recognition, EEG and ECG signal processing",
+  //     title:
+  //       "An overview of the research work on multispectral imaging, hand gesture recognition, EEG and ECG signal processing",
   //     authors: "S. Ari",
   //     journal: "CSI Transactions on ICT",
   //     year: "2019",
   //     volume: "7",
   //     issue: "2",
   //     pages: "75-79",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "37",
-  //     title: "3D Features for Human Action Recognition with Semi-Supervised Learning",
+  //     title:
+  //       "3D Features for Human Action Recognition with Semi-Supervised Learning",
   //     authors: "S. P. Sahoo, U. Srinivasu, and S. Ari",
   //     journal: "IET Image Processing",
   //     year: "2019",
   //     volume: "13",
   //     issue: "6",
   //     pages: "983-990",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "38",
@@ -1187,73 +1277,79 @@ const Page = () => {
   //     year: "2019",
   //     volume: "115",
   //     pages: "524-534",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "39",
-  //     title: "Change detection in Landsat images based on local neighborhood information",
+  //     title:
+  //       "Change detection in Landsat images based on local neighborhood information",
   //     authors: "N. Gupta, G. V. Pillai and S. Ari",
   //     journal: "IET Image Processing",
   //     year: "2018",
   //     volume: "12",
   //     issue: "11",
   //     pages: "2051-2058",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "40",
-  //     title: "Hand Gesture Recognition using DWT and F-ratio Based Feature Descriptor",
+  //     title:
+  //       "Hand Gesture Recognition using DWT and F-ratio Based Feature Descriptor",
   //     authors: "J. P. Sahoo, S. Ari, and D. K. Ghosh",
   //     journal: "IET Image Processing",
   //     year: "2018",
   //     volume: "12",
   //     issue: "10",
   //     pages: "1780-1787",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "41",
-  //     title: "Change Detection in Optical Satellite Images Based on Local Binary Similarity Pattern Technique",
+  //     title:
+  //       "Change Detection in Optical Satellite Images Based on Local Binary Similarity Pattern Technique",
   //     authors: "N. Gupta, G. V. Pillai and S. Ari",
   //     journal: "IEEE Geoscience and Remote Sensing Letters",
   //     year: "2018",
   //     volume: "15",
   //     issue: "3",
   //     pages: "389-393",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "42",
-  //     title: "P300 detection with brain-computer interface application using PCA and ensemble of weighted SVMs",
+  //     title:
+  //       "P300 detection with brain-computer interface application using PCA and ensemble of weighted SVMs",
   //     authors: "S. Kundu, and S. Ari",
   //     journal: "IETE Journal of research",
   //     year: "2018",
   //     volume: "64",
   //     issue: "3",
   //     pages: "406-414",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "43",
-  //     title: "Variable length mixed radix MDC FFT/IFFT processor for MIMO-OFDM application",
+  //     title:
+  //       "Variable length mixed radix MDC FFT/IFFT processor for MIMO-OFDM application",
   //     authors: "G. R. Locharla, K. K. Mahapatra, and S. Ari",
   //     journal: "IET Computers & Digital Techniques",
   //     year: "2017",
   //     volume: "12",
   //     issue: "1",
   //     pages: "9-19",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "44",
-  //     title: "Implementation of MIMO data reordering and scheduling methodologies for eight-parallel variable length multi-path delay commutator FFT/IFFT",
+  //     title:
+  //       "Implementation of MIMO data reordering and scheduling methodologies for eight-parallel variable length multi-path delay commutator FFT/IFFT",
   //     authors: "G. R. Locharla, S. K. Kallur, K. K. Mahapatra, and S. Ari",
   //     journal: "IET Computers & Digital Techniques",
   //     year: "2016",
   //     volume: "10",
   //     issue: "5",
   //     pages: "215-225",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "45",
@@ -1264,18 +1360,19 @@ const Page = () => {
   //     volume: "10",
   //     issue: "4",
   //     pages: "655-662",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "46",
-  //     title: "Automatic ECG arrhythmia classification using dual tree complex wavelet based features",
+  //     title:
+  //       "Automatic ECG arrhythmia classification using dual tree complex wavelet based features",
   //     authors: "M. Thomas, M. K. Das, and S. Ari",
   //     journal: "AEU-International Journal of Electronics and Communications",
   //     year: "2015",
   //     volume: "69",
   //     issue: "4",
   //     pages: "715-721",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "47",
@@ -1285,18 +1382,19 @@ const Page = () => {
   //     year: "2015",
   //     volume: "2",
   //     pages: "429-434",
-  //     type: "Book Chapter"
+  //     type: "Book Chapter",
   //   },
   //   {
   //     id: "48",
-  //     title: "Electrocardiogram beat classification using S-transform based feature set",
+  //     title:
+  //       "Electrocardiogram beat classification using S-transform based feature set",
   //     authors: "M. K. Das, and S. Ari",
   //     journal: "Journal of Mechanics in Medicine and Biology",
   //     year: "2014",
   //     volume: "14",
   //     issue: "05",
   //     pages: "1450066",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "49",
@@ -1307,7 +1405,7 @@ const Page = () => {
   //     volume: "1",
   //     issue: "3",
   //     pages: "98-103",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "50",
@@ -1315,7 +1413,7 @@ const Page = () => {
   //     authors: "M. K. Das, and S. Ari",
   //     journal: "International Scholarly Research Notices, Hindawi",
   //     year: "2014",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "51",
@@ -1326,29 +1424,32 @@ const Page = () => {
   //     volume: "8",
   //     issue: "4",
   //     pages: "625-634",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "52",
-  //     title: "Autocorrelation and Hilbert transform-based QRS complex detection in ECG signal",
+  //     title:
+  //       "Autocorrelation and Hilbert transform-based QRS complex detection in ECG signal",
   //     authors: "J. P. Sahoo, M. K. Das, S. Ari, and S. Behera",
-  //     journal: "International Journal of Signal and Imaging Systems Engineering",
+  //     journal:
+  //       "International Journal of Signal and Imaging Systems Engineering",
   //     year: "2024",
   //     volume: "7",
   //     issue: "1",
   //     pages: "52-58",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "53",
-  //     title: "ECG signal analysis for detection of Heart Rate and Ischemic Episodes",
+  //     title:
+  //       "ECG signal analysis for detection of Heart Rate and Ischemic Episodes",
   //     authors: "G. K. Sahoo, S. Ari, and S. K. Patra",
   //     journal: "International Journal of Advanced Computer Research",
   //     year: "2013",
   //     volume: "3",
   //     issue: "1",
   //     pages: "148-152",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "54",
@@ -1359,7 +1460,7 @@ const Page = () => {
   //     volume: "34",
   //     issue: "6",
   //     pages: "362-370",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "55",
@@ -1370,60 +1471,65 @@ const Page = () => {
   //     volume: "43",
   //     issue: "6",
   //     pages: "649-660",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "56",
-  //     title: "Detection of cardiac abnormality from PCG signal using LMS based least square SVM classifier",
+  //     title:
+  //       "Detection of cardiac abnormality from PCG signal using LMS based least square SVM classifier",
   //     authors: "S. Ari, K. Hembram, and G. Saha",
   //     journal: "Expert Systems with Applications",
   //     year: "2010",
   //     volume: "37",
   //     pages: "8019-8026",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "57",
-  //     title: "In search of an optimization technique for Artificial Neural Network to classify abnormal heart sounds",
+  //     title:
+  //       "In search of an optimization technique for Artificial Neural Network to classify abnormal heart sounds",
   //     authors: "S. Ari and G. Saha",
   //     journal: "Applied Soft Computing journal",
   //     year: "2009",
   //     volume: "9",
   //     pages: "330-340",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "58",
-  //     title: "Classification of Heart Sounds using Empirical Mode Decomposition based features",
+  //     title:
+  //       "Classification of Heart Sounds using Empirical Mode Decomposition based features",
   //     authors: "S. Ari and G. Saha",
   //     journal: "International Journal of Medical Engineering and Informatics",
   //     year: "2008",
   //     volume: "1",
   //     issue: "1",
   //     pages: "91-108",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "59",
-  //     title: "DSP implementation of heart valve disorder detection system from phonocardiogram signal",
+  //     title:
+  //       "DSP implementation of heart valve disorder detection system from phonocardiogram signal",
   //     authors: "S. Ari, K. Sensharma, and G. Saha",
   //     journal: "Journal of Medical Engineering & Technology",
   //     year: "2008",
   //     volume: "32",
   //     issue: "2",
   //     pages: "122-132",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "60",
-  //     title: "A Robust Heart Sound Segmentation Algorithm for Commonly Occurring Heart Valve Diseases",
+  //     title:
+  //       "A Robust Heart Sound Segmentation Algorithm for Commonly Occurring Heart Valve Diseases",
   //     authors: "S. Ari, P. Kumar, and G. Saha",
   //     journal: "Journal of Medical Engineering & Technology",
   //     year: "2008",
   //     volume: "32",
   //     issue: "6",
   //     pages: "456-465",
-  //     type: "International Journal"
+  //     type: "International Journal",
   //   },
   //   {
   //     id: "61",
@@ -1434,8 +1540,8 @@ const Page = () => {
   //     volume: "7",
   //     issue: "2",
   //     pages: "129-150",
-  //     type: "International Journal"
-  //   }
+  //     type: "International Journal",
+  //   },
   // ];
 
   // const conferences: Conference[] = [
@@ -2244,9 +2350,47 @@ const Page = () => {
     </div>
   );
 
+  // --- Helper functions for safe year extraction ---
+  const extractYear = (v?: string | number | null): string | null => {
+    if (!v) return null;
+    const match = String(v).match(/\b(19|20)\d{2}\b/);
+    return match ? match[0] : null;
+  };
+
+  const getItemYear = (item: PublicationItem): string | null => {
+    if ("year" in item && item.year) return item.year; // Journals/Conferences
+    if ("FilingDate" in item) {
+      const y = extractYear(item.FilingDate);
+      if (y) return y;
+    }
+    if ("GrantDate" in item) {
+      const y = extractYear(item.GrantDate);
+      if (y) return y;
+    }
+    return null;
+  };
+
+  const availableYears = Array.from(
+    new Set(data.map(getItemYear).filter((y): y is string => Boolean(y)))
+  ).sort((a, b) => Number(b) - Number(a));
+
+  // Filter the data based on the search query
+ const filteredData = data.filter((item) => {
+  const matchesQuery = Object.values(item)
+    .join(" ")
+    .toLowerCase()
+    .includes(query.toLowerCase());
+
+  const year = getItemYear(item);
+  const matchesYear = yearFilter === "all" || year === yearFilter;
+
+  return matchesQuery && matchesYear;
+});
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
-      <Navbar />
+      <Navbar/>
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -2267,21 +2411,87 @@ const Page = () => {
           </p>
         </div>
 
-        {/* Results count */}
-        <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 border border-blue-100">
+        {/* Results + Search Row */}
+        <div className="flex justify-between items-center mb-8">
+          {/*  Results count */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-4 border border-blue-100">
             <p className="text-blue-800 font-semibold">
               Showing{" "}
-              <span className="text-blue-600 font-bold">{data.length}</span>{" "}
-              {data.length === 1 ? "entry" : "entries"}
+              <span className="text-blue-600 font-bold">
+                {filteredData.length}
+              </span>{" "}
+              {filteredData.length === 1 ? "entry" : "entries"}
             </p>
+          </div>
+
+          {/* Search + Year Filter */}
+          <div className="flex items-center gap-2 relative">
+            {/* Search bar */}
+            <div className="flex items-center w-80 bg-white border border-gray-300 rounded-full shadow-sm px-3 py-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="flex-grow bg-transparent outline-none text-gray-700 placeholder-gray-400 px-2"
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors duration-300"
+              >
+                🔍
+              </button>
+            </div>
+
+            {/* Year Filter Button */}
+            <button
+              onClick={() => setShowYearMenu(!showYearMenu)}
+              className="bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-full shadow-sm transition-all duration-200"
+            >
+              🗓️ Filter
+            </button>
+
+            {/* Dropdown Menu */}
+            {showYearMenu && (
+              <div className="absolute top-12 right-0 bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-40 z-50">
+                <button
+                  onClick={() => {
+                    setYearFilter("all");
+                    setShowYearMenu(false);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
+                    yearFilter === "all"
+                      ? "text-blue-600 font-semibold"
+                      : "text-gray-700"
+                  }`}
+                >
+                  All Years
+                </button>
+                {availableYears.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => {
+                      setYearFilter(year);
+                      setShowYearMenu(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
+                      yearFilter === year
+                        ? "text-blue-600 font-semibold"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Data Grid */}
-        {data.length > 0 ? (
+        {filteredData.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.map((item) => (
+            {filteredData.map((item) => (
               <Card key={item.id} item={item} type={pageType} />
             ))}
           </div>
