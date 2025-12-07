@@ -2518,13 +2518,20 @@ const Page = () => {
         </div>
 
         {/* Data Grid */}
-        {filteredData.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredData.map((item) => (
-              <Card key={item.id} item={item} type={pageType} />
-            ))}
-          </div>
-        ) : (
+        {isLoading ? (
+  // ✅ Loading indicator
+  <div className="flex flex-col items-center justify-center py-20">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid mb-4"></div>
+    <p className="text-blue-800 font-medium text-lg">Loading data...</p>
+  </div>
+) : filteredData.length > 0 ? (
+  // ✅ Data grid after loading
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {filteredData.map((item) => (
+      <Card key={item.id} item={item} type={pageType} />
+    ))}
+  </div>
+) : (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-12 text-center border border-blue-100">
             <div className="text-blue-300 mb-4">
               <svg
