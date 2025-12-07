@@ -43,9 +43,9 @@ interface Conference {
   status?: string;
 }
 
-type PublicationItem = Patent | Journal | Conference;
+type PublicationItem = Patent | Journal | Conference ;
 
-type PublicationType = "patent" | "journal" | "conference";
+type PublicationType = "patent" | "journal" | "conference"| "bookchapter";
 let patentData: Patent[];
 
 // Modal Component
@@ -798,6 +798,53 @@ const Page = () => {
         setIsLoading(false);
       }
     }
+    const fetchBookChapters=async()=>{
+      try{
+        setIsLoading(true);
+        const bookChapterRes = await fetch("/api/journal");
+        const response = await bookChapterRes.json();
+        if (response.success && Array.isArray(response.data)) {
+             const filteredRes = response.data.filter(
+        (item: Journal) => item.type === "Book Chapter"
+      );
+           type JournalApiItem = {
+            id: string;
+            title: string;
+            authors?: string;
+            journal?: string;
+            year?: string | number;
+            volume?: string;
+            issue?: string;
+            pages?: string;
+            type?: string;
+            status?: string;
+          };
+           // Transform the API data to match the Journal interface
+          const transformedJournals: Journal[] = filteredRes.map(
+            (item: JournalApiItem, index: number) => ({
+              id: (index + 1).toString(),
+              title: item.title || "",
+              authors: item.authors,
+              journal: item.journal,
+              year: item.year,
+              volume: item.volume,
+              issue: item.issue,
+              pages: item.pages,
+              type: item.type,
+              status: item.status,
+              data: [],
+            })
+          );
+
+          setJournals(transformedJournals);    
+        }
+      }catch (error) {
+        console.error("Error fetching Book Chapters:", error);
+        setJournals([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
     if (pageType === "patent") {
       fetchPatents();
@@ -806,6 +853,9 @@ const Page = () => {
     } 
     else if(pageType === "conference") {
       fetchConference();
+    }
+    else if(pageType==="bookchapter"){
+      fetchBookChapters();
     } else {
       setIsLoading(false);
     }
@@ -2202,6 +2252,8 @@ const Page = () => {
         return journals;
       case "conference":
         return conferences;
+      case "bookchapter":
+        return journals;
       default:
         return [];
     }
@@ -2215,6 +2267,8 @@ const Page = () => {
         return "Journal Publications";
       case "conference":
         return "Conference Proceedings";
+      case "bookchapter":
+        return "Book Chapters";
       default:
         return "Publications";
     }
@@ -2228,6 +2282,8 @@ const Page = () => {
         return "📚";
       case "conference":
         return "🎤";
+      case "bookchapter":
+        return "📖";
       default:
         return "📄";
     }
@@ -2304,6 +2360,21 @@ const Page = () => {
         )}
 
         {type === "journal" && (
+          <>
+            {(item as Journal).authors && (
+              <div className="text-sm text-gray-600 line-clamp-1">
+                {(item as Journal).authors}
+              </div>
+            )}
+            {(item as Journal).year && (
+              <div className="flex items-center text-sm">
+                <span className="text-blue-700 font-medium mr-2">Year:</span>
+                <span className="text-gray-700">{(item as Journal).year}</span>
+              </div>
+            )}
+          </>
+        )}
+        {type === "bookchapter" && (
           <>
             {(item as Journal).authors && (
               <div className="text-sm text-gray-600 line-clamp-1">
