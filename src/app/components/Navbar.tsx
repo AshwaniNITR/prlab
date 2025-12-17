@@ -98,6 +98,7 @@ export default function Navbar() {
         { name: "Patent", href: "/publications/patent" },
         { name: "Journal", href: "/publications/journal" },
         { name: "Conference", href: "/publications/conference" },
+        { name: "Book Chapter", href: "/publications/bookchapter" },
       ]
     },
     { name: "Courses", href: "#courses" },
