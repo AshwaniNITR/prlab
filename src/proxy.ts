@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const token = request.cookies.get("refreshToken")?.value;
 
     if (!token) {
@@ -21,8 +21,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/uploadConference/:path*",
-        "/uploadJournal/:path*",
-        "/uploadPatents/:path*",
+        "/admin/:path*",
+        // "/uploadConference/:path*",
+        // "/uploadJournal/:path*",
+        // "/uploadPatents/:path*",
     ],
 };

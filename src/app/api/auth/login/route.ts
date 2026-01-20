@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbconnect";
 import UserModel from "@/model/user";
 import bcrypt from "bcryptjs";
+import { use } from "react";
 
 const JWT_SECRET = process.env.REFRESH_TOKEN_SECRET || "";
 
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = (password===user.password? true:false);
         if (!isMatch) {
             return NextResponse.json(
                 {
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
         response.cookies.set("refreshToken", refreshToken, {
             httpOnly: true,
             secure:true,
-            maxAge: 60 * 60 * 24,
+            maxAge: 60 * 60 * 24,//
             path: "/",
         });
 
