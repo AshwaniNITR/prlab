@@ -5,7 +5,7 @@ import Navbar from "./Navbar";
 
 export default function Footer() {
   return (
-    <div id="contactus" className="bg-white relative z-10">
+    <div id="contact" className="bg-white relative z-10">
       <Navbar/>
       
       {/* Footer Section */}

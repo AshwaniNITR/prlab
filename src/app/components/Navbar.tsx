@@ -88,8 +88,8 @@ export default function Navbar() {
   const toggleDropdown = () => setDropdownOpen((v: boolean) => !v);
 
   const menuItems: MenuItem[] = [
-    { name: "Home", href: "#home" },
-    { name: "Team", href: "#team" },
+    { name: "Home", href: "/" },
+    { name: "Team", href: "/team" },
     { name: "Research", href: "#research" },
     { 
       name: "Publications", 
@@ -103,7 +103,7 @@ export default function Navbar() {
     },
     { name: "Courses", href: "#courses" },
     { name: "Events", href: "#events" },
-    { name: "Contacts", href: "#contacts" },
+    { name: "Contact Us", href: "#contact" },
     { name: "Gallery", href: "#gallery" },
   ];
 

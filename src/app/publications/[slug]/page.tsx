@@ -1255,7 +1255,7 @@ const Page = () => {
 
   return (
    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 xl:px-8">
-  <Navbar />
+  {/* <Navbar /> */}
   
   {/* Animated background elements - adjusted for mobile */}
   <div className="fixed inset-0 overflow-hidden pointer-events-none">
