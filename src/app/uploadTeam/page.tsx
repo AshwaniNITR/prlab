@@ -305,7 +305,7 @@ export default function AddTeamMemberPage() {
                 {/* Graduated Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Graduated Date (Optional)
+                    Graduated Date (Optional, Leave if you are a present member)
                   </label>
                   <input
                     type="date"
