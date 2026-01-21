@@ -14,7 +14,7 @@ export default function Footer() {
           {/* Conference Details */}
           <div className="flex flex-col items-center mb-6">
             <h3 className="text-xl font-bold uppercase tracking-wide mb-2">
-              Pattern, Recognition and Machine Intelligence Lab
+              Pattern Recognition and Machine Intelligence Lab
             </h3>
           </div>
 
