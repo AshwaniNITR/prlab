@@ -281,10 +281,10 @@ export default function AddTeamMemberPage() {
                     <option value="B.Tech">B.Tech</option>
                     <option value="M.Tech">M.Tech</option>
                     <option value="Ph.D">Ph.D</option>
-                    <option value="Assistant Professor">Assistant Professor</option>
+                    {/* <option value="Assistant Professor">Assistant Professor</option>
                     <option value="Associate Professor">Associate Professor</option>
                     <option value="Professor">Professor</option>
-                    <option value="HOD">HOD</option>
+                    <option value="HOD">HOD</option> */}
                   </select>
                 </div>
 
