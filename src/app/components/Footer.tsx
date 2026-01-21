@@ -40,7 +40,7 @@ export default function Footer() {
               <Mail className="w-5 h-5 text-blue-400 mr-2" />
               <span className="text-lg font-semibold">Contact Us</span>
             </div>
-            <p className="mt-2 text-gray-300">PR@nitrkl.ac.in</p>
+            <p className="mt-2 text-gray-300">patternrecognitionlaboratory@gmail.com</p>
           </div>
         </div>
         
@@ -48,7 +48,7 @@ export default function Footer() {
 
         {/* Footer Bottom - Similar to CVBL style */}
         <div className="flex flex-col items-center justify-center">
-          <div className="text-gray-400 text-sm mb-2">©PR-Lab, NIT Rourkela</div>
+          <div className="text-gray-400 text-sm mb-2">©2026, All rights reserved</div>
           
         </div>
       </footer>
