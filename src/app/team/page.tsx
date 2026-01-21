@@ -19,7 +19,7 @@ type Category = 'all' | 'present' | 'past' | 'phd' | 'mtech' | 'btech';
 // Truncate text function
 const truncateText = (text: string, wordLimit: number): string => {
   if (!text) return '';
-  const words = text.split(' ');
+  const words = text.trim().split(/\s+/);
   if (words.length <= wordLimit) return text;
   return words.slice(0, wordLimit).join(' ') + '...';
 };
@@ -140,86 +140,98 @@ export default function TeamPage() {
 
   const categoryStats = getCategoryStats();
 
-  // Modal component
-  const MemberModal = () => {
-    if (!selectedMember) return null;
+// Simple scrollable modal for mobile
+// Modal component - Proper sizing for both mobile and desktop
+const MemberModal = () => {
+  if (!selectedMember) return null;
 
-    const status = getStatus(selectedMember);
-    const category = getMemberCategory(selectedMember);
-    
-    const categoryColors = {
-      phd: 'bg-blue-100 text-blue-800',
-      mtech: 'bg-yellow-100 text-yellow-800',
-      btech: 'bg-red-100 text-red-800',
-    };
+  const status = getStatus(selectedMember);
+  const category = getMemberCategory(selectedMember);
+  
+  const categoryColors = {
+    phd: 'bg-blue-100 text-blue-800',
+    mtech: 'bg-yellow-100 text-yellow-800',
+    btech: 'bg-red-100 text-red-800',
+  };
 
-    const statusColors = {
-      present: 'bg-green-100 text-green-800',
-      past: 'bg-purple-100 text-purple-800',
-    };
+  const statusColors = {
+    present: 'bg-green-100 text-green-800',
+    past: 'bg-purple-100 text-purple-800',
+  };
 
-    return (
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        {/* Backdrop */}
-        <div 
-          className="fixed inset-0 backdrop-blur-sm bg-opacity-50 transition-opacity"
-          onClick={closeModal}
-        />
+  return (
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 backdrop-blur-sm bg-opacity-60"
+        onClick={closeModal}
+      />
 
-        {/* Modal */}
+      {/* Modal Container */}
+      <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]">
             {/* Close button */}
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-80 hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+              aria-label="Close modal"
             >
-              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Left Column - Image */}
-              <div className="relative h-full min-h-[400px]">
-                {selectedMember.image ? (
-                  <Image
-                    src={selectedMember.image}
-                    alt={selectedMember.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <svg className="w-32 h-32 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+            {/* Modal Content */}
+            <div className="flex flex-col md:flex-row h-full">
+              {/* Left Column - Image (Fixed Height) */}
+              <div className="w-full md:w-2/5">
+                <div className="relative h-64 md:h-full">
+                  {selectedMember.image ? (
+                    <Image
+                      src={selectedMember.image}
+                      alt={selectedMember.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                      priority
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Badges on image */}
+                  <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+                    <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
+                      {status === 'present' ? 'Present' : 'Alumni'}
+                    </span>
+                    <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
+                      {category.toUpperCase()}
+                    </span>
                   </div>
-                )}
-                
-                {/* Badges on image */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusColors[status]}`}>
-                    {status === 'present' ? 'Present Member' : 'Alumni'}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
-                    {category.toUpperCase()}
-                  </span>
                 </div>
               </div>
 
-              {/* Right Column - Details */}
-              <div className="p-8 overflow-y-auto max-h-[90vh]">
+              {/* Right Column - Details (Scrollable) */}
+              <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
+                {/* Name and Designation */}
                 <div className="mb-6">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedMember.name}</h2>
-                  <p className="text-xl text-gray-700 font-medium">{selectedMember.designation}</p>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {selectedMember.name}
+                  </h2>
+                  <p className="text-lg md:text-xl text-gray-700 font-medium">
+                    {selectedMember.designation}
+                  </p>
                 </div>
 
                 {/* Dates Section */}
-                <div className="mb-8 p-6 bg-gray-50 rounded-xl">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h3>
-                  <div className="space-y-4">
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Timeline</h3>
+                  <div className="space-y-3">
                     {selectedMember.enrolledDate && (
                       <div className="flex items-center">
                         <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
@@ -232,7 +244,7 @@ export default function TeamPage() {
                           <p className="font-medium text-gray-900">
                             {new Date(selectedMember.enrolledDate).toLocaleDateString('en-US', {
                               year: 'numeric',
-                              month: 'long',
+                              month: 'short',
                               day: 'numeric'
                             })}
                           </p>
@@ -252,7 +264,7 @@ export default function TeamPage() {
                           <p className="font-medium text-gray-900">
                             {new Date(selectedMember.graduatedDate).toLocaleDateString('en-US', {
                               year: 'numeric',
-                              month: 'long',
+                              month: 'short',
                               day: 'numeric'
                             })}
                           </p>
@@ -263,25 +275,34 @@ export default function TeamPage() {
                 </div>
 
                 {/* Description Section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">About</h3>
+                <div className="pb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
                   {selectedMember.Description ? (
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {selectedMember.Description}
-                      </p>
+                    <div className="text-gray-700 leading-relaxed whitespace-pre-line max-h-[300px] overflow-y-auto pr-2">
+                      {selectedMember.Description}
                     </div>
                   ) : (
                     <p className="text-gray-500 italic">No description provided.</p>
                   )}
+                </div>
+
+                {/* Bottom Close Button for Mobile Only */}
+                <div className="block md:hidden pt-4">
+                  <button
+                    onClick={closeModal}
+                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   if (loading) {
     return (
@@ -372,133 +393,126 @@ export default function TeamPage() {
         </div>
 
         {/* Team Members Grid */}
-        {filteredMembers.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 3.747a4.007 4.007 0 01-4.014 4.014" />
-              </svg>
+         {/* Team Members Grid */}
+{filteredMembers.length === 0 ? (
+  <div className="text-center py-12">
+    <div className="text-gray-400 mb-4">
+      <svg className="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 3.747a4.007 4.007 0 01-4.014 4.014" />
+      </svg>
+    </div>
+    <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members found</h3>
+    <p className="text-gray-600">No team members match the current filter.</p>
+  </div>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {filteredMembers.map((member) => {
+      const status = getStatus(member);
+      const category = getMemberCategory(member);
+    const description = member.Description || '';
+const wordCount = description.split(/\s+/).length;
+const shouldTruncate = wordCount > 20; // Reduced from 30 to 20 for better truncation
+const truncatedDescription = shouldTruncate ? truncateText(description, 20) : description;
+      
+      const categoryColors = {
+        phd: 'bg-blue-100 text-blue-800',
+        mtech: 'bg-yellow-100 text-yellow-800',
+        btech: 'bg-red-100 text-red-800',
+      };
+
+      const statusColors = {
+        present: 'bg-green-100 text-green-800',
+        past: 'bg-purple-100 text-purple-800',
+      };
+
+      return (
+        <div
+          key={member._id}
+          onClick={() => openMemberModal(member)}
+          className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group flex flex-col h-full"
+        >
+          {/* Member Image */}
+          <div className="relative h-56 bg-gray-100 overflow-hidden flex-shrink-0">
+            {member.image ? (
+              <Image
+                src={member.image}
+                alt={member.name}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <svg className="w-20 h-20 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            )}
+            
+            {/* Status Badge */}
+            <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
+              {status === 'present' ? 'Present' : 'Alumni'}
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members found</h3>
-            <p className="text-gray-600">No team members match the current filter.</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredMembers.map((member) => {
-              const status = getStatus(member);
-              const category = getMemberCategory(member);
-              const wordCount = member.Description ? member.Description.split(' ').length : 0;
-              const shouldTruncate = wordCount > 50;
-              const truncatedDescription = shouldTruncate ? truncateText(member.Description || '', 50) : member.Description;
-              
-              const categoryColors = {
-                phd: 'bg-blue-100 text-blue-800',
-                mtech: 'bg-yellow-100 text-yellow-800',
-                btech: 'bg-red-100 text-red-800',
-              };
 
-              const statusColors = {
-                present: 'bg-green-100 text-green-800',
-                past: 'bg-purple-100 text-purple-800',
-              };
+          {/* Member Info - This section will grow and push dates to bottom */}
+          <div className="p-5 flex flex-col flex-grow">
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                {member.name}
+              </h3>
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 ${categoryColors[category]}`}>
+                {category.toUpperCase()}
+              </span>
+            </div>
+            
+            <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-1">{member.designation}</p>
+            
+            {/* Description with proper truncation */}
+            {description && (
+              <div className="mb-4 flex-grow">
+                <p className="text-gray-600 text-sm mb-2 line-clamp-3">
+                  {truncatedDescription}
+                </p>
+                {shouldTruncate && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openMemberModal(member);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                  >
+                    Read more
+                  </button>
+                )}
+              </div>
+            )}
 
-              return (
-                <div
-                  key={member._id}
-                  onClick={() => openMemberModal(member)}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
-                >
-                  {/* Member Image */}
-                  <div className="relative h-64 bg-gray-100 overflow-hidden">
-                    {member.image ? (
-                      <Image
-                        src={member.image}
-                        alt={member.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                    )}
-                    
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
-                    
-                    {/* Status Badge */}
-                    <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${statusColors[status]}`}>
-                      {status === 'present' ? 'Present' : 'Alumni'}
-                    </div>
-                    
-                    {/* View Details Badge */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-white bg-opacity-90 rounded-full text-sm font-semibold text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      View Details →
-                    </div>
-                  </div>
-
-                  {/* Member Info */}
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {member.name}
-                      </h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${categoryColors[category]}`}>
-                        {category.toUpperCase()}
-                      </span>
-                    </div>
-                    
-                    <p className="text-gray-700 font-medium mb-4">{member.designation}</p>
-                    
-                    {member.Description && (
-                      <div className="mb-4">
-                        <p className="text-gray-600 text-sm mb-2">
-                          {truncatedDescription}
-                          {shouldTruncate && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openMemberModal(member);
-                              }}
-                              className="ml-1 text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                              Read more
-                            </button>
-                          )}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Dates */}
-                    <div className="space-y-2 text-sm text-gray-600">
-                      {member.enrolledDate && (
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span>Enrolled: {new Date(member.enrolledDate).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      
-                      {member.graduatedDate && (
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>Graduated: {new Date(member.graduatedDate).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            {/* Dates - This will always be at the bottom */}
+            <div className="space-y-2 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
+              {member.enrolledDate && (
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="truncate">Enrolled: {new Date(member.enrolledDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
                 </div>
-              );
-            })}
+              )}
+              
+              {member.graduatedDate && (
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="truncate">Graduated: {new Date(member.graduatedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-
+        </div>
+      );
+    })}
+  </div>
+)}
         {/* Summary Stats */}
         {/* <div className="mt-12 pt-8 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Summary</h3>
