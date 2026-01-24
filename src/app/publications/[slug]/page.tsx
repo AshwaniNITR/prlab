@@ -1254,189 +1254,189 @@ const Page = () => {
   });
 
   return (
-   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 xl:px-8">
-  {/* <Navbar /> */}
-  
-  {/* Animated background elements - adjusted for mobile */}
-  <div className="fixed inset-0 overflow-hidden pointer-events-none">
-    <div className="absolute -top-20 -right-16 sm:-top-32 sm:-right-24 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-pulse"></div>
-    <div className="absolute -bottom-20 -left-16 sm:-bottom-32 sm:-left-24 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-pulse delay-1000"></div>
-  </div>
-
-  <div className="max-w-7xl mx-auto relative">
-    {/* Header */}
-    <div className="text-center mb-8 sm:mb-10 lg:mb-12 px-2">
-      <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg mb-3 sm:mb-4">
-        <span className="text-xl sm:text-2xl">{icon}</span>
-      </div>
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 px-2">
-        {title}
-      </h1>
-      <p className="text-sm sm:text-base lg:text-lg text-blue-700 max-w-2xl mx-auto font-medium px-2">
-        Pattern Recognition and Machine Intelligence Laboratory
-      </p>
-    </div>
-
-    {/* Results + Search Row */}
-    <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6 sm:mb-8">
-      {/* Results count */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-4 border border-blue-100 w-full sm:w-auto">
-        <p className="text-blue-800 font-semibold text-sm sm:text-base">
-          Showing{" "}
-          <span className="text-blue-600 font-bold">
-            {filteredData.length}
-          </span>{" "}
-          {filteredData.length === 1 ? "entry" : "entries"}
-        </p>
-      </div>
-
-      {/* Search + Year Filter */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-        {/* Search bar */}
-        <div className="flex items-center bg-white border border-gray-300 rounded-full shadow-sm px-3 py-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 w-full sm:w-64 md:w-72 lg:w-80">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-grow bg-transparent outline-none text-gray-700 placeholder-gray-400 px-2 text-sm sm:text-base"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1.5 sm:p-2 transition-colors duration-300 flex-shrink-0"
-            aria-label="Search"
-          >
-            <span className="text-sm sm:text-base">🔍</span>
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6 xl:px-8">
+      <div className="max-w-7xl mx-auto relative pl-0 md:pl-20 lg:pl-24 xl:pl-28">
+        {/* Animated background elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-16 sm:-top-32 sm:-right-24 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-20 -left-16 sm:-bottom-32 sm:-left-24 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-pulse delay-1000"></div>
         </div>
 
-        {/* Year Filter Button - relative container for dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowYearMenu(!showYearMenu)}
-            className="bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-full shadow-sm transition-all duration-200 text-sm sm:text-base w-full sm:w-auto"
-          >
-            🗓️ Filter
-          </button>
+        {/* Header */}
+        <div className="text-center mb-8 sm:mb-10 lg:mb-12 px-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg mb-3 sm:mb-4">
+            <span className="text-xl sm:text-2xl">{icon}</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 px-2">
+            {title}
+          </h1>
+          <p className="text-sm sm:text-base lg:text-lg text-blue-700 max-w-2xl mx-auto font-medium px-2">
+            Pattern Recognition and Machine Intelligence Laboratory
+          </p>
+        </div>
 
-          {/* Dropdown Menu */}
-          {showYearMenu && (
-            <div className="absolute top-full sm:top-12 right-0 sm:right-0 mt-2 sm:mt-0 bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-full sm:w-44 z-50 max-h-60 overflow-y-auto">
-              {/* Clear All option */}
+        {/* Results + Search Row */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6 sm:mb-8">
+          {/* Results count */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-4 border border-blue-100 w-full sm:w-auto">
+            <p className="text-blue-800 font-semibold text-sm sm:text-base">
+              Showing{" "}
+              <span className="text-blue-600 font-bold">
+                {filteredData.length}
+              </span>{" "}
+              {filteredData.length === 1 ? "entry" : "entries"}
+            </p>
+          </div>
+
+          {/* Search + Year Filter */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            {/* Search bar */}
+            <div className="flex items-center bg-white border border-gray-300 rounded-full shadow-sm px-3 py-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 w-full sm:w-64 md:w-72 lg:w-80">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="flex-grow bg-transparent outline-none text-gray-700 placeholder-gray-400 px-2 text-sm sm:text-base"
+              />
               <button
-                onClick={() => setYearFilters([])}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1.5 sm:p-2 transition-colors duration-300 flex-shrink-0"
+                aria-label="Search"
               >
-                Clear All
+                <span className="text-sm sm:text-base">🔍</span>
               </button>
-              <div className="border-t border-gray-200 my-1"></div>
+            </div>
 
-              {/* All Years option */}
+            {/* Year Filter Button */}
+            <div className="relative">
               <button
-                onClick={() => {
-                  setYearFilters([]);
-                  setShowYearMenu(false);
-                }}
-                className={`flex items-center w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
-                  yearFilters.length === 0
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-700"
-                }`}
+                onClick={() => setShowYearMenu(!showYearMenu)}
+                className="bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-full shadow-sm transition-all duration-200 text-sm sm:text-base w-full sm:w-auto"
               >
-                <input
-                  type="checkbox"
-                  checked={yearFilters.length === 0}
-                  readOnly
-                  className="mr-2 accent-blue-600"
-                />
-                All Years
+                🗓️ Filter
               </button>
 
-              {/* Year list */}
-              {availableYears.map((year) => {
-                const isSelected = yearFilters.includes(year);
-                return (
+              {/* Dropdown Menu */}
+              {showYearMenu && (
+                <div className="absolute top-full sm:top-12 right-0 sm:right-0 mt-2 sm:mt-0 bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-full sm:w-44 z-50 max-h-60 overflow-y-auto">
+                  {/* Clear All option */}
                   <button
-                    key={year}
+                    onClick={() => setYearFilters([])}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                  >
+                    Clear All
+                  </button>
+                  <div className="border-t border-gray-200 my-1"></div>
+
+                  {/* All Years option */}
+                  <button
                     onClick={() => {
-                      setYearFilters(
-                        (prev) =>
-                          isSelected
-                            ? prev.filter((y) => y !== year)
-                            : [...prev, year]
-                      );
+                      setYearFilters([]);
+                      setShowYearMenu(false);
                     }}
                     className={`flex items-center w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
-                      isSelected
+                      yearFilters.length === 0
                         ? "bg-blue-50 text-blue-700 font-semibold"
                         : "text-gray-700"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={isSelected}
+                      checked={yearFilters.length === 0}
                       readOnly
                       className="mr-2 accent-blue-600"
                     />
-                    {year}
+                    All Years
                   </button>
-                );
-              })}
+
+                  {/* Year list */}
+                  {availableYears.map((year) => {
+                    const isSelected = yearFilters.includes(year);
+                    return (
+                      <button
+                        key={year}
+                        onClick={() => {
+                          setYearFilters(
+                            (prev) =>
+                              isSelected
+                                ? prev.filter((y) => y !== year)
+                                : [...prev, year]
+                          );
+                        }}
+                        className={`flex items-center w-full text-left px-4 py-2 text-sm hover:bg-blue-100 ${
+                          isSelected
+                            ? "bg-blue-50 text-blue-700 font-semibold"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          readOnly
+                          className="mr-2 accent-blue-600"
+                        />
+                        {year}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+
+        {/* Data Grid */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20">
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-4 border-blue-500 border-solid mb-3 sm:mb-4"></div>
+            <p className="text-blue-800 font-medium text-base sm:text-lg">
+              Loading data...
+            </p>
+          </div>
+        ) : filteredData.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+            {filteredData.map((item) => (
+              <Card key={item.id} item={item} type={pageType} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm p-6 sm:p-8 lg:p-12 text-center border border-blue-100 mx-2 sm:mx-0">
+            <div className="text-blue-300 mb-3 sm:mb-4">
+              <svg
+                className="w-16 h-16 sm:w-20 sm:h-20 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-blue-900 mb-2">
+              No Data Found
+            </h3>
+            <p className="text-blue-700 text-sm sm:text-base">
+              No {pageType} entries available at the moment.
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Modal */}
+      {selectedItem && (
+        <PublicationModal
+          item={selectedItem}
+          type={pageType}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
+      )}
     </div>
-
-    {/* Data Grid */}
-    {isLoading ? (
-      <div className="flex flex-col items-center justify-center py-16 sm:py-20">
-        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-4 border-blue-500 border-solid mb-3 sm:mb-4"></div>
-        <p className="text-blue-800 font-medium text-base sm:text-lg">Loading data...</p>
-      </div>
-    ) : filteredData.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
-        {filteredData.map((item) => (
-          <Card key={item.id} item={item} type={pageType} />
-        ))}
-      </div>
-    ) : (
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm p-6 sm:p-8 lg:p-12 text-center border border-blue-100 mx-2 sm:mx-0">
-        <div className="text-blue-300 mb-3 sm:mb-4">
-          <svg
-            className="w-16 h-16 sm:w-20 sm:h-20 mx-auto"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-xl sm:text-2xl font-bold text-blue-900 mb-2">
-          No Data Found
-        </h3>
-        <p className="text-blue-700 text-sm sm:text-base">
-          No {pageType} entries available at the moment.
-        </p>
-      </div>
-    )}
-  </div>
-
-  {/* Modal */}
-  {selectedItem && (
-    <PublicationModal
-      item={selectedItem}
-      type={pageType}
-      isOpen={isModalOpen}
-      onClose={closeModal}
-    />
-  )}
-</div>
   );
 };
 
