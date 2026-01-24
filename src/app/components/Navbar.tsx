@@ -57,7 +57,24 @@ const ANIMATIONS = {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth >= 1500);
+    };
+    
+    // Initial check
+    checkScreenSize();
+    
+    // Add event listener
+    window.addEventListener("resize", checkScreenSize);
+    
+    // Cleanup
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   // Close on Esc
   useEffect(() => {
@@ -210,8 +227,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ---------------- MOBILE NAV ---------------- */}
-      <nav className="md:hidden fixed top-0 left-0 w-full bg-white/20 z-[60]">
+      {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
+      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
         <div className="flex justify-between items-center h-16 px-4">
           {/* Logo */}
           <Image src="/nitrlogo.png" className="rounded-lg" alt="Logo" width={50} height={50} />
@@ -275,8 +292,8 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
 
-      {/* ---------------- DESKTOP SIDEBAR ---------------- */}
-      <div className="hidden md:block">
+      {/* ---------------- DESKTOP SIDEBAR (1500px and above) ---------------- */}
+      <div className={`${isDesktop ? 'block' : 'hidden'}`}>
         <div
           className={`fixed top-0 left-0 h-screen w-20 flex flex-col justify-between items-center py-6 z-50 
           ${
