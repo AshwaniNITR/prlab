@@ -281,7 +281,7 @@ export default function Navbar() {
                 exit="exit"
               >
                 <motion.div
-                  className="flex flex-col items-start gap-4 px-6 w-full max-w-sm"
+                  className="flex flex-col items-start  px-6 w-full max-w-sm"
                   variants={ANIMATIONS.menuContainer}
                 >
                   {menuItems.map((item) => renderMenuItem(item, true))}
