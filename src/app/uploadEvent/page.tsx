@@ -159,7 +159,7 @@ export default function AddTeamMemberPage() {
 
             // Redirect after 2 seconds
             setTimeout(() => {
-                router.push('/event');
+                router.push('/events');
             }, 2000);
 
         } catch (err: any) {
