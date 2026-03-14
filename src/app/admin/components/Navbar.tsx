@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 // Types
 interface MenuItem {
@@ -56,12 +54,11 @@ const ANIMATIONS = {
   },
 };
 
-export default function Navbar() {
+export default function AdminNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
 
   // Check screen size
   useEffect(() => {
@@ -104,32 +101,26 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // If we are on an admin route, don't render the main navbar
-  if (pathname?.startsWith("/admin")) {
-    return null;
-  }
-
   const toggleMenu = () => setIsOpen((v: boolean) => !v);
   const toggleDropdown = () => setDropdownOpen((v: boolean) => !v);
 
   const menuItems: MenuItem[] = [
-    { name: "Home", href: "/" },
-    { name: "Team", href: "/team" },
-    { name: "Research", href: "#research" },
+    { name: "Dashboard", href: "/admin/dashboard" },
+    { name: "Team", href: "/admin/team" },
+    { name: "Research", href: "/admin/research" },
     { 
       name: "Publications", 
-      href: "#publications",
+      href: "/admin/publications",
       dropdown: [
-        { name: "Patent", href: "/publications/patent" },
-        { name: "Journal", href: "/publications/journal" },
-        { name: "Conference", href: "/publications/conference" },
-        { name: "Book Chapter", href: "/publications/bookchapter" },
+        { name: "Patent", href: "/admin/publications/patent" },
+        { name: "Journal", href: "/admin/publications/journal" },
+        { name: "Conference", href: "/admin/publications/conference" },
+        { name: "Book Chapter", href: "/admin/publications/bookchapter" },
       ]
     },
-    { name: "Courses", href: "#courses" },
-    { name: "Events", href: "#events" },
-    { name: "Contact Us", href: "#contact" },
-    { name: "Gallery", href: "#gallery" },
+    { name: "Courses", href: "/admin/courses" },
+    { name: "Events", href: "/admin/events" },
+    { name: "Gallery", href: "/admin/gallery" },
   ];
 
   const handleMenuItemClick = (item: MenuItem) => {
@@ -146,25 +137,25 @@ export default function Navbar() {
   const renderMenuItem = (item: MenuItem, isMobile: boolean = false) => {
     if (item.dropdown) {
       if (isMobile) {
-        // Mobile: Always expanded with blue line
+        // Mobile: Always expanded with red line for admin
         return (
           <div key={item.name} className="w-full">
             {/* Publications main item */}
             <motion.div
               variants={ANIMATIONS.menuItem}
-              className="text-xl text-white py-2 px-4 rounded-lg"
+              className="text-xl text-white py-2 px-4 rounded-lg flex items-center gap-2"
             >
               {item.name}
             </motion.div>
             
-            {/* Dropdown items with blue line */}
-            <div className="ml-6 border-l-2 border-blue-400 pl-4 space-y-2 mt-2">
+            {/* Dropdown items with red line */}
+            <div className="ml-6 border-l-2 border-red-400 pl-4 space-y-2 mt-2">
               {item.dropdown.map((dropdownItem: DropdownItem) => (
                 <motion.a
                   key={dropdownItem.name}
                   href={dropdownItem.href}
                   onClick={handleDropdownItemClick}
-                  className="block text-lg text-white/90 hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
+                  className="block text-lg text-white/90 hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
                   variants={ANIMATIONS.menuItem}
                 >
                   {dropdownItem.name}
@@ -180,7 +171,7 @@ export default function Navbar() {
         <div key={item.name} className="relative" ref={dropdownRef}>
           <button
             onClick={toggleDropdown}
-            className="text-xl md:text-2xl text-white hover:text-blue-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
+            className="text-xl md:text-2xl text-white hover:text-red-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
           >
             {item.name}
             <motion.span
@@ -199,7 +190,7 @@ export default function Navbar() {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="absolute left-0 top-full mt-1 bg-gray-800/90 backdrop-blur-sm rounded-lg overflow-hidden min-w-[200px] border-l-4 border-gray-800/90"
+                className="absolute left-0 top-full mt-1 bg-gray-800/90 backdrop-blur-sm rounded-lg overflow-hidden min-w-[200px] border-l-4 border-red-500"
               >
                 <div className="py-2">
                   {item.dropdown.map((dropdownItem: DropdownItem) => (
@@ -207,7 +198,7 @@ export default function Navbar() {
                       key={dropdownItem.name}
                       href={dropdownItem.href}
                       onClick={handleDropdownItemClick}
-                      className="block text-white hover:text-blue-300 transition-colors py-3 px-6 hover:bg-white/5 border-l-2 border-blue-400/50 ml-2"
+                      className="block text-white hover:text-red-300 transition-colors py-3 px-6 hover:bg-white/5 border-l-2 border-red-400/50 ml-2"
                     >
                       {dropdownItem.name}
                     </a>
@@ -225,7 +216,7 @@ export default function Navbar() {
         key={item.name}
         href={item.href}
         variants={ANIMATIONS.menuItem}
-        className={`${isMobile ? 'text-xl text-white' : 'text-xl md:text-2xl text-white'} hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
+        className={`${isMobile ? 'text-xl text-white' : 'text-xl md:text-2xl text-white'} hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
         onClick={() => handleMenuItemClick(item)}
       >
         {item.name}
@@ -236,33 +227,34 @@ export default function Navbar() {
   return (
     <>
       {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
-      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
+      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/10 backdrop-blur-md z-[60] border-b border-red-500/20`}>
         <div className="flex justify-between items-center h-16 px-4">
-          {/* Logo */}
-          <Link href="/admin/dashboard">
-            <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
-          </Link>
+          {/* Logo with Admin label */}
+          <div className="flex items-center gap-3">
+            <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={40} height={40} />
+            <span className="text-red-400 font-bold text-lg tracking-wider">ADMIN</span>
+          </div>
 
           {/* Hamburger / Cross button */}
           <button
             onClick={toggleMenu}
             aria-label="Toggle menu"
             aria-expanded={isOpen}
-            className={`flex flex-col justify-center items-center w-12 h-12 rounded-full border border-blue-500/20 bg-blue-500/10 backdrop-blur-sm transition-all
+            className={`flex flex-col justify-center items-center w-12 h-12 rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-sm transition-all
               ${isOpen ? "fixed top-4 right-4 z-[70]" : "relative z-[60]"}`}
           >
             <span
-              className={`block w-6 h-0.5 bg-blue-400 mb-1.5 transition-transform ${
+              className={`block w-6 h-0.5 bg-red-400 mb-1.5 transition-transform ${
                 isOpen ? "rotate-45 translate-y-2" : ""
               }`}
             />
             <span
-              className={`block w-6 h-0.5 bg-blue-400 transition-opacity ${
+              className={`block w-6 h-0.5 bg-red-400 transition-opacity ${
                 isOpen ? "opacity-0" : ""
               }`}
             />
             <span
-              className={`block w-6 h-0.5 bg-blue-400 mt-1.5 transition-transform ${
+              className={`block w-6 h-0.5 bg-red-400 mt-1.5 transition-transform ${
                 isOpen ? "-rotate-45 -translate-y-2" : ""
               }`}
             />
@@ -275,7 +267,7 @@ export default function Navbar() {
             <>
               {/* Dark overlay behind button */}
               <motion.div
-                className="fixed inset-0 bg-gray-900/95 z-40"
+                className="fixed inset-0 bg-white/10 z-40"
                 variants={ANIMATIONS.overlay}
                 initial="hidden"
                 animate="visible"
@@ -291,9 +283,10 @@ export default function Navbar() {
                 exit="exit"
               >
                 <motion.div
-                  className="flex flex-col items-start  px-6 w-full max-w-sm"
+                  className="flex flex-col items-start px-6 w-full max-w-sm"
                   variants={ANIMATIONS.menuContainer}
                 >
+                  <div className="mb-6 text-red-500 font-bold tracking-widest text-2xl border-b border-red-500/30 pb-2 w-full">ADMIN PANEL</div>
                   {menuItems.map((item) => renderMenuItem(item, true))}
                 </motion.div>
               </motion.div>
@@ -305,17 +298,20 @@ export default function Navbar() {
       {/* ---------------- DESKTOP SIDEBAR (1500px and above) ---------------- */}
       <div className={`${isDesktop ? 'block' : 'hidden'}`}>
         <div
-          className={`fixed top-0 left-0 h-screen w-20 flex flex-col justify-between items-center py-6 z-50 
+          className={`fixed top-0 left-0 h-screen w-20 flex flex-col items-center py-6 z-50 
           ${
             isOpen
               ? "bg-transparent"
-              : "bg-white/10 backdrop-blur-lg border-r border-blue-400 shadow-xl"
+              : "bg-white/10 backdrop-blur-lg border-r border-red-500 shadow-xl"
           }`}
         >
-          {/* Logo */}
-          <Link href="/admin/dashboard">
-            <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
-          </Link>
+          {/* Logo with Admin label */}
+          <div className="flex flex-col items-center gap-2">
+            <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={50} height={50} />
+            {!isOpen && <span className="text-red-400 font-bold text-xs tracking-widest mt-2">ADMIN</span>}
+          </div>
+          
+          <div className="flex-1" />
           
           {/* Desktop hamburger */}
           {!isOpen && (
@@ -323,15 +319,15 @@ export default function Navbar() {
               onClick={toggleMenu}
               aria-label="Open menu"
               aria-expanded={isOpen}
-              className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20"
+              className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-red-500/10 backdrop-blur-sm border border-red-500/30 hover:bg-red-500/20 transition-colors"
             >
-              <span className="block w-6 h-0.5 bg-blue-400 mb-1.5" />
-              <span className="block w-6 h-0.5 bg-blue-400" />
-              <span className="block w-6 h-0.5 bg-blue-400 mt-1.5" />
+              <span className="block w-6 h-0.5 bg-red-400 mb-1.5" />
+              <span className="block w-6 h-0.5 bg-red-400" />
+              <span className="block w-6 h-0.5 bg-red-400 mt-1.5" />
             </button>
           )}
 
-          <div className="h-6" />
+          <div className="flex-1" />
         </div>
 
         {/* Overlay + Menu */}
@@ -358,13 +354,17 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsOpen(false)}
                   aria-label="Close menu"
-                  className="absolute top-6 right-6 text-4xl text-white z-[60] hover:text-blue-300 transition-colors"
+                  className="absolute top-6 right-6 text-4xl text-white z-[60] hover:text-red-400 transition-colors"
                 >
                   &times;
                 </button>
 
+                <div className="absolute top-10 left-1/2 -translate-x-1/2 text-red-500 font-bold tracking-widest text-3xl">
+                  ADMINISTRATION PANEL
+                </div>
+
                 <motion.div
-                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4 relative"
+                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4 relative mt-16"
                   variants={ANIMATIONS.menuContainer}
                 >
                   {menuItems.map((item) => renderMenuItem(item))}

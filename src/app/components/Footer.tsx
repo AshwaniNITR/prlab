@@ -2,8 +2,11 @@
 
 import { Mail, MapPin } from "lucide-react";
 import Navbar from "./Navbar";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+
   return (
     <div id="contact" className="bg-white relative z-10">
       <Navbar/>
