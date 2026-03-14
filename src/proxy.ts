@@ -21,9 +21,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/admin/:path*",
-        // "/uploadConference/:path*",
-        // "/uploadJournal/:path*",
-        // "/uploadPatents/:path*",
+        //"/admin/:path*"
     ],
 };
