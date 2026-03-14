@@ -24,7 +24,10 @@ const Profile = () => {
             
             {/* Name and designation - refined typography */}
             <h1 className="text-3xl font-semibold text-slate-800 mb-1">Samit Ari</h1>
-            <p className="text-base text-slate-500 font-medium tracking-wide">Professor</p>
+            <p className="text-base font-semibold text-slate-500  tracking-wide">Professor</p>
+            <p className="text-base text-center text-slate-500 font-medium tracking-wide">Department of Electronics and Communication Engineering</p>
+            <p className="text-base text-center text-slate-500 font-medium tracking-wide">National Institute of Technology Rourkela</p>
+            
             
             {/* Social links - cleaner icon styling */}
             <div className="flex items-center justify-center gap-6 mt-4">
