@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Linkedin, GraduationCap, Globe, X } from "lucide-react";
+import { Linkedin, GraduationCap, Globe, X, Mail } from "lucide-react";
 
 const Profile = () => {
   const [activeModal, setActiveModal] = useState<"about" | "research" | null>(null);
@@ -11,7 +11,7 @@ const Profile = () => {
       {/* Main card - cleaner design with subtle border */}
       <div className="bg-white rounded-xl shadow-md w-full max-w-3xl overflow-hidden border border-slate-200">
         {/* Header section with subtle gradient */}
-        <div className="bg-gradient-to-r from-blue-50 to-white px-8 pt-8 pb-6 border-b border-slate-100">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-8 pt-8 pb-6 border-b border-slate-100">
           <div className="flex flex-col items-center">
             {/* Profile image with subtle border */}
             <div className="w-28 h-28 rounded-full bg-slate-200 mb-4 ring-4 ring-white shadow-sm overflow-hidden">
@@ -52,6 +52,15 @@ const Profile = () => {
               >
                 <Globe className="w-5 h-5" />
               </a>
+               <a 
+                href="mailto:samit@nitrkl.ac.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+              >
+                <Mail className="w-5 h-5"/>
+              </a>
+
             </div>
           </div>
         </div>
