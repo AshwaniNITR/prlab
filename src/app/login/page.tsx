@@ -32,7 +32,7 @@ export default function LoginPage() {
                 throw new Error(data.message || "Login failed");
             }
 
-            router.push("/");
+            router.push("/admin/dashboard");
             router.refresh();
         } catch (err: any) {
             setError(err.message);
