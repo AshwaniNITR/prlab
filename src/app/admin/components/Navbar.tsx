@@ -244,7 +244,7 @@ export default function AdminNavbar() {
   return (
     <>
       {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
-      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/10 backdrop-blur-md z-[60] border-b border-red-500/20`}>
+      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
         <div className="flex justify-between items-center h-16 px-4">
           {/* Logo with Admin label */}
           <button 
@@ -288,7 +288,7 @@ export default function AdminNavbar() {
             <>
               {/* Dark overlay behind button */}
               <motion.div
-                className="fixed inset-0 bg-white/10 z-40"
+                className="fixed inset-0 bg-gray-900/95 z-40"
                 variants={ANIMATIONS.overlay}
                 initial="hidden"
                 animate="visible"
