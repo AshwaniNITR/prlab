@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 // Types
 interface MenuItem {
@@ -58,7 +60,22 @@ export default function AdminNavbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", { method: "GET" });
+      if (res.ok) {
+        setIsExitModalOpen(false);
+        router.push("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   // Check screen size
   useEffect(() => {
@@ -230,10 +247,14 @@ export default function AdminNavbar() {
       <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/10 backdrop-blur-md z-[60] border-b border-red-500/20`}>
         <div className="flex justify-between items-center h-16 px-4">
           {/* Logo with Admin label */}
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsExitModalOpen(true)}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer text-left"
+            title="Exit Admin Panel"
+          >
             <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={40} height={40} />
             <span className="text-red-400 font-bold text-lg tracking-wider">ADMIN</span>
-          </div>
+          </button>
 
           {/* Hamburger / Cross button */}
           <button
@@ -306,10 +327,14 @@ export default function AdminNavbar() {
           }`}
         >
           {/* Logo with Admin label */}
-          <div className="flex flex-col items-center gap-2">
+          <button 
+            onClick={() => setIsExitModalOpen(true)}
+            className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
+            title="Exit Admin Panel"
+          >
             <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={50} height={50} />
             {!isOpen && <span className="text-red-400 font-bold text-xs tracking-widest mt-2">ADMIN</span>}
-          </div>
+          </button>
           
           <div className="flex-1" />
           
@@ -374,6 +399,54 @@ export default function AdminNavbar() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ---------------- EXIT CONFIRMATION MODAL ---------------- */}
+      <AnimatePresence>
+        {isExitModalOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[100]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsExitModalOpen(false)}
+            />
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                className="bg-gray-900 border border-red-500/30 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl pointer-events-auto"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
+                    <LogOut className="w-8 h-8 text-red-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Exit Admin Panel?</h3>
+                  <p className="text-gray-400 mb-8">
+                    Are you sure you want to log out and return to the main site?
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 w-full">
+                    <button
+                      onClick={() => setIsExitModalOpen(false)}
+                      className="px-6 py-3 rounded-xl bg-gray-800 text-white font-medium hover:bg-gray-700 transition-colors w-full border border-gray-700 hover:border-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors w-full shadow-lg shadow-red-600/20 hover:shadow-red-600/40"
+                    >
+                      Log Out
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
