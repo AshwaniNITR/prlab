@@ -25,7 +25,7 @@ const TeamSchema: Schema<Team> = new Schema(
             type: String,
             index: true,
             trim: true,
-            enum:["B.Tech","M.Tech","Ph.D","Assistant Professor","Associate Professor","Professor","HOD"]
+            enum:["B.Tech","M.Tech","Ph.D","Assistant Professor","Associate Professor","Professor","HOD","Ex Ph.D","JRF"]
         },
         enrolledDate: {
             type: Date,
