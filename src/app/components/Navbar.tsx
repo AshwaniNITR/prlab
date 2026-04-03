@@ -115,7 +115,7 @@ export default function Navbar() {
   const menuItems: MenuItem[] = [
     { name: "Home", href: "/" },
     { name: "Team", href: "/team" },
-    { name: "Research", href: "#research" },
+    { name: "Research", href: "/research" },
     { 
       name: "Publications", 
       href: "#publications",
