@@ -13,7 +13,7 @@ export async function GET() {
 
     response.cookies.set("refreshToken", "", {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === "production",
         expires: new Date(0),
         path: "/",
     });

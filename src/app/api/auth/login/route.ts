@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 //import dbConnect from "@/lib/dbconnect";
 //import UserModel from "@/model/user";
-//import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 //import { use } from "react";
 
 // const JWT_SECRET = process.env.REFRESH_TOKEN_SECRET || "";
@@ -37,39 +37,48 @@ import { SignJWT } from "jose";
 
 export async function POST(req: Request) {
     try {
-        //await dbConnect();
         const { email, password } = await req.json();
 
         // Admin login check for now using environment variables
         if (
-            email === process.env.ADMIN_EMAIL &&
-            password === process.env.ADMIN_PASSWORD
+            email !== process.env.ADMIN_EMAIL &&
+            password !== process.env.ADMIN_PASSWORD
         ) {
-            const secret = new TextEncoder().encode(process.env.REFRESH_TOKEN_SECRET || "default-secret");
-            const token = await new SignJWT({ email, role: "admin" })
-                .setProtectedHeader({ alg: "HS256" })
-                .setIssuedAt()
-                .setExpirationTime("1d")
-                .sign(secret);
-
-            const response = NextResponse.json(
+            return NextResponse.json(
                 {
-                    success: true,
-                    message: "Login successful"
+                    success: false,
+                    message: "Invalid credentials"
                 },
                 {
-                    status: 200
+                    status: 401
                 }
             );
-
-            response.cookies.set("refreshToken", token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                path: "/",
-            });
-
-            return response;
         }
+
+        const secret = new TextEncoder().encode(process.env.REFRESH_TOKEN_SECRET || "default-secret");
+        const token = await new SignJWT({ email, role: "admin" })
+            .setProtectedHeader({ alg: "HS256" })
+            .setIssuedAt()
+            .setExpirationTime("1d")
+            .sign(secret);
+
+        const response = NextResponse.json(
+            {
+                success: true,
+                message: "Login successful"
+            },
+            {
+                status: 200
+            }
+        );
+
+        response.cookies.set("refreshToken", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            path: "/",
+        });
+
+        return response;
 
         // const user = await UserModel.findOne({ email });
         // if (!user) {
