@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
         // Admin login check for now using environment variables
         if (
-            email !== process.env.ADMIN_EMAIL &&
+            email !== process.env.ADMIN_EMAIL ||
             password !== process.env.ADMIN_PASSWORD
         ) {
             return NextResponse.json(
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
         response.cookies.set("refreshToken", token, {
             httpOnly: true,
-            sameSite:"lax",
+            sameSite:"none",
             secure: process.env.NODE_ENV === "production",
             path: "/",
         });

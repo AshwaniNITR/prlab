@@ -32,7 +32,9 @@ export default function LoginPage() {
       if (res.status!=200) {
         throw new Error(data.message || "Login failed");
       }
-      router.push("/admin/dashboard");
+
+      //router.push("/admin/dashboard");
+      window.location.href = "/admin/dashboard";
     } catch (err: any) {
       setError(err.message);
     } finally {
