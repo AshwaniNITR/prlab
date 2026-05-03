@@ -29,12 +29,10 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (res.status!=200) {
         throw new Error(data.message || "Login failed");
       }
-      router.refresh();
       router.push("/admin/dashboard");
-      router.refresh();
     } catch (err: any) {
       setError(err.message);
     } finally {
