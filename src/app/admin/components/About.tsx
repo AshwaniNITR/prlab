@@ -196,6 +196,7 @@ const BulletListModal: React.FC<BulletListModalProps> = ({ isOpen, onClose, titl
 
 // --- Main About Component ---
 const About: React.FC = () => {
+  const [docId, setDocId] = useState<number | null>(null);
   const [missionVision, setMissionVision] = useState('');
   const [coreObjectives, setCoreObjectives] = useState('');
   const [capabilities, setCapabilities] = useState('');
@@ -219,7 +220,12 @@ const About: React.FC = () => {
         setLoading(true);
         const res = await fetch('/api/aboutus');
         if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
+        const json = await res.json();
+
+        // API returns { success, message, data: {...} }
+        const data = json.data;
+
+        setDocId(data.id ?? null);
         setMissionVision(data.missionVision ?? '');
         setCoreObjectives(data.coreObjectives ?? '');
         setCapabilities(data.capabilities ?? '');
@@ -235,7 +241,7 @@ const About: React.FC = () => {
     fetchData();
   }, []);
 
-  // PATCH only changed fields
+  // PATCH only changed fields using the numeric id
   const patchData = async (fields: Partial<{
     missionVision: string;
     coreObjectives: string;
@@ -243,9 +249,10 @@ const About: React.FC = () => {
     contributions: string[];
     researchFields: string[];
   }>) => {
+    if (!docId) throw new Error('No document id available');
     setIsSaving(true);
     try {
-      const res = await fetch('/api/aboutus', {
+      const res = await fetch(`/api/aboutus/${docId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fields),
