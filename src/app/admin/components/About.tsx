@@ -58,7 +58,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, title, content, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-lg p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-xl font-semibold text-blue-800">Edit {title}</h3>
@@ -130,7 +130,7 @@ const BulletListModal: React.FC<BulletListModalProps> = ({ isOpen, onClose, titl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-lg p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-xl font-semibold text-blue-800">Edit {title}</h3>
@@ -355,7 +355,7 @@ const About: React.FC = () => {
         <div className="mb-12 relative group">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-semibold mb-6 text-blue-700 border-b-2 border-blue-200 pb-2">Mission & Vision</h3>
-            <button onClick={() => openSectionModal('Mission & Vision')} className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Edit Mission & Vision">
+            <button onClick={() => openSectionModal('Mission & Vision')} className="text-blue-600  transition-opacity" aria-label="Edit Mission & Vision">
               <Pencil className="w-5 h-5" />
             </button>
           </div>
@@ -366,7 +366,7 @@ const About: React.FC = () => {
         <div className="mb-12 relative group">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-semibold mb-6 text-blue-700 border-b-2 border-blue-200 pb-2">Core Objectives</h3>
-            <button onClick={() => openSectionModal('Core Objectives')} className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Edit Core Objectives">
+            <button onClick={() => openSectionModal('Core Objectives')} className="text-blue-600  transition-opacity" aria-label="Edit Core Objectives">
               <Pencil className="w-5 h-5" />
             </button>
           </div>
@@ -377,7 +377,7 @@ const About: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-md relative group/box">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-xl font-semibold text-blue-600">Contributions</h4>
-                <button onClick={() => openBulletModal('Contributions')} className="text-blue-600 opacity-0 group-hover/box:opacity-100 transition-opacity" aria-label="Edit Contributions">
+                <button onClick={() => openBulletModal('Contributions')} className="text-blue-600  transition-opacity" aria-label="Edit Contributions">
                   <Pencil className="w-4 h-4" />
                 </button>
               </div>
@@ -390,7 +390,7 @@ const About: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-md relative group/box">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-xl font-semibold text-blue-600">Research Fields</h4>
-                <button onClick={() => openBulletModal('Research Fields')} className="text-blue-600 opacity-0 group-hover/box:opacity-100 transition-opacity" aria-label="Edit Research Fields">
+                <button onClick={() => openBulletModal('Research Fields')} className="text-blue-600  transition-opacity" aria-label="Edit Research Fields">
                   <Pencil className="w-4 h-4" />
                 </button>
               </div>
@@ -410,7 +410,7 @@ const About: React.FC = () => {
         <div className="relative group">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-semibold mb-6 text-blue-700 border-b-2 border-blue-200 pb-2">Lab Capabilities</h3>
-            <button onClick={() => openSectionModal('Lab Capabilities')} className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Edit Lab Capabilities">
+            <button onClick={() => openSectionModal('Lab Capabilities')} className="text-blue-600  transition-opacity" aria-label="Edit Lab Capabilities">
               <Pencil className="w-5 h-5" />
             </button>
           </div>
