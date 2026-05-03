@@ -219,20 +219,26 @@ const About: React.FC = () => {
       try {
         setLoading(true);
         const res = await fetch('/api/aboutus');
-        if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
 
-        // API returns { success, message, data: {...} }
+        console.log('GET /api/aboutus response:', json); // debug
+
+        if (!res.ok) throw new Error(json.message || 'Failed to fetch');
+
         const data = json.data;
 
-        setDocId(data.id ?? null);
+        // data.id is our custom numeric field set in the schema
+        const numericId = data.id;
+        console.log('Resolved docId:', numericId); // debug
+
+        setDocId(numericId ?? null);
         setMissionVision(data.missionVision ?? '');
         setCoreObjectives(data.coreObjectives ?? '');
         setCapabilities(data.capabilities ?? '');
         setContributions(data.contributions ?? []);
         setResearchFields(data.researchFields ?? []);
       } catch (err) {
-        console.error(err);
+        console.error('Fetch error:', err);
         setError('Could not load content. Please try again.');
       } finally {
         setLoading(false);
@@ -249,17 +255,28 @@ const About: React.FC = () => {
     contributions: string[];
     researchFields: string[];
   }>) => {
-    if (!docId) throw new Error('No document id available');
+    if (docId === null) {
+      console.error('docId is null — cannot PATCH');
+      throw new Error('No document id available');
+    }
+
+    const url = `/api/aboutus/${docId}`;
+    console.log('PATCH', url, fields); // debug
+
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/aboutus/${docId}`, {
+      const res = await fetch(url, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fields),
       });
-      if (!res.ok) throw new Error('Failed to save');
+
+      const json = await res.json();
+      console.log('PATCH response:', json); // debug
+
+      if (!res.ok) throw new Error(json.error || json.message || 'Failed to save');
     } catch (err) {
-      console.error(err);
+      console.error('PATCH error:', err);
       throw err;
     } finally {
       setIsSaving(false);
@@ -279,8 +296,8 @@ const About: React.FC = () => {
         setCapabilities(newContent);
       }
       closeModal();
-    } catch {
-      alert('Failed to save. Please try again.');
+    } catch (err: any) {
+      alert(`Failed to save: ${err?.message ?? 'Unknown error'}`);
     }
   };
 
@@ -294,8 +311,8 @@ const About: React.FC = () => {
         setResearchFields(newItems);
       }
       closeModal();
-    } catch {
-      alert('Failed to save. Please try again.');
+    } catch (err: any) {
+      alert(`Failed to save: ${err?.message ?? 'Unknown error'}`);
     }
   };
 
