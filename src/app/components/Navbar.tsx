@@ -313,7 +313,7 @@ export default function Navbar() {
           }`}
         >
           {/* Logo */}
-          <Link href="/admin/dashboard">
+          <Link href="/admin">
             <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
           </Link>
           

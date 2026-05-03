@@ -34,7 +34,7 @@ export default function LoginPage() {
       }
 
       //router.push("/admin/dashboard");
-      window.location.href = "/admin/dashboard";
+      window.location.href = "/admin";
     } catch (err: any) {
       setError(err.message);
     } finally {

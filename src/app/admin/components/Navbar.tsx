@@ -122,7 +122,7 @@ export default function AdminNavbar() {
   const toggleDropdown = () => setDropdownOpen((v: boolean) => !v);
 
   const menuItems: MenuItem[] = [
-    { name: "Dashboard", href: "/admin/dashboard" },
+    { name: "Dashboard", href: "/admin" },
     { name: "Team", href: "/admin/team" },
     { name: "Research", href: "/admin/research" },
     { 
