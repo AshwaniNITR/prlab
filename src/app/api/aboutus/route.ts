@@ -1,100 +1,81 @@
-import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
-import AboutUs from "@/model/aboutus";
+// app/api/aboutus/route.ts
+import dbConnect from "@/lib/dbconnect";
+import AboutUsModel from "@/model/aboutus";
 
-const connectDB = async () => {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI as string);
-  }
-};
-
-// GET - Fetch the AboutUs document
 export async function GET() {
-  try {
-    await connectDB();
+  await dbConnect();
 
-    const data = await AboutUs.findOne();
+  try {
+    const data = await AboutUsModel.findOne();
 
     if (!data) {
-      return NextResponse.json({ message: "No AboutUs data found" }, { status: 404 });
+      return Response.json(
+        { success: false, message: "No AboutUs data found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(data, { status: 200 });
+    return Response.json(
+      { success: true, message: "AboutUs data fetched successfully", data },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ message: "Failed to fetch AboutUs data", error }, { status: 500 });
+    console.log("Internal server error", error);
+    return Response.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Create a new AboutUs document
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
+  await dbConnect();
+
   try {
-    await connectDB();
+    const body = await request.json();
 
-    const body = await req.json();
+    const { id, missionVision, coreObjectives, capabilities, contributions, researchFields } = body;
 
-    const existing = await AboutUs.findOne();
+    if (!id) {
+      return Response.json(
+        { success: false, message: "Missing required field: id" },
+        { status: 400 }
+      );
+    }
+
+    // Check for duplicate id
+    const existing = await AboutUsModel.findOne({ id });
     if (existing) {
-      return NextResponse.json({ message: "AboutUs document already exists. Use PUT or PATCH to update." }, { status: 409 });
+      return Response.json(
+        { success: false, message: `AboutUs with id ${id} already exists. Use PATCH to update.` },
+        { status: 409 }
+      );
     }
 
-    const newData = await AboutUs.create(body);
-
-    return NextResponse.json(newData, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ message: "Failed to create AboutUs data", error }, { status: 500 });
-  }
-}
-
-// PUT - Replace the entire AboutUs document
-export async function PUT(req: NextRequest) {
-  try {
-    await connectDB();
-
-    const body = await req.json();
-
-    const updated = await AboutUs.findOneAndReplace({}, body, {
-      new: true,
-      upsert: true,
+    const newAboutUs = new AboutUsModel({
+      id,
+      missionVision: missionVision || "",
+      coreObjectives: coreObjectives || "",
+      capabilities: capabilities || "",
+      contributions: contributions || [],
+      researchFields: researchFields || [],
     });
 
-    return NextResponse.json(updated, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ message: "Failed to replace AboutUs data", error }, { status: 500 });
-  }
-}
+    await newAboutUs.save();
 
-// PATCH - Partially update the AboutUs document
-export async function PATCH(req: NextRequest) {
-  try {
-    await connectDB();
-
-    const body = await req.json();
-
-    const updated = await AboutUs.findOneAndUpdate(
-      {},
-      { $set: body },
-      { new: true, upsert: true }
+    return Response.json(
+      { success: true, message: "AboutUs data created successfully", data: newAboutUs },
+      { status: 201 }
     );
-
-    return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: "Failed to update AboutUs data", error }, { status: 500 });
-  }
-}
-
-// DELETE - Delete the AboutUs document
-export async function DELETE() {
-  try {
-    await connectDB();
-
-    const deleted = await AboutUs.findOneAndDelete();
-
-    if (!deleted) {
-      return NextResponse.json({ message: "No AboutUs data found to delete" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "AboutUs data deleted successfully" }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ message: "Failed to delete AboutUs data", error }, { status: 500 });
+    console.log("Internal server error", error);
+    return Response.json(
+      {
+        success: false,
+        message: "Internal server error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
