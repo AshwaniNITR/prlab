@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-import AboutUsModel from "@/model/aboutus";
+import AboutUs from "@/model/aboutus";
 
 const connectDB = async () => {
   if (mongoose.connection.readyState === 0) {
@@ -13,7 +13,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    const data = await AboutUsModel.findOne();
+    const data = await AboutUs.findOne();
 
     if (!data) {
       return NextResponse.json({ message: "No AboutUs data found" }, { status: 404 });
@@ -32,12 +32,12 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    const existing = await AboutUsModel.findOne();
+    const existing = await AboutUs.findOne();
     if (existing) {
       return NextResponse.json({ message: "AboutUs document already exists. Use PUT or PATCH to update." }, { status: 409 });
     }
 
-    const newData = await AboutUsModel.create(body);
+    const newData = await AboutUs.create(body);
 
     return NextResponse.json(newData, { status: 201 });
   } catch (error) {
@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
 
-    const updated = await AboutUsModel.findOneAndReplace({}, body, {
+    const updated = await AboutUs.findOneAndReplace({}, body, {
       new: true,
       upsert: true,
     });
@@ -70,7 +70,7 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json();
 
-    const updated = await AboutUsModel.findOneAndUpdate(
+    const updated = await AboutUs.findOneAndUpdate(
       {},
       { $set: body },
       { new: true, upsert: true }
@@ -87,7 +87,7 @@ export async function DELETE() {
   try {
     await connectDB();
 
-    const deleted = await AboutUsModel.findOneAndDelete();
+    const deleted = await AboutUs.findOneAndDelete();
 
     if (!deleted) {
       return NextResponse.json({ message: "No AboutUs data found to delete" }, { status: 404 });
