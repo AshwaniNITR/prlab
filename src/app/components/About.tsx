@@ -218,7 +218,7 @@ const About: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch('/api/aboutus');
+        const res = await fetch('https://prlab.vercel.app/api/aboutus');
         const json = await res.json();
 
         console.log('GET /api/aboutus response:', json); // debug
@@ -260,7 +260,7 @@ const About: React.FC = () => {
       throw new Error('No document id available');
     }
 
-    const url = `/api/aboutus/${docId}`;
+    const url = `https://prlab.vercel.app/api/aboutus/${docId}`;
     console.log('PATCH', url, fields); // debug
 
     setIsSaving(true);
