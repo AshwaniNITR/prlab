@@ -176,32 +176,25 @@ export async function POST(request: Request) {
 
 // Keep your existing GET function
 export async function GET() {
-    await dbConnect()
+  await dbConnect();
 
-    try {
-        const patents = await PatentModel.find().sort({ _id: -1 })
+  try {
+    const patents = await PatentModel.find().sort({ _id: -1 }).lean(); // 🔥 IMPORTANT
 
-        return Response.json(
-            {
-                success: true,
-                message: "Patents fetched successfully",
-                data: patents
-            },
-            {
-                status: 200
-            }
-        )
-    } catch (error) {
-        console.log("Internal server error", error)
+    const formatted = patents.map((p: any) => ({
+      ...p,
+      _id: p._id.toString(), // 🔥 ensure string
+    }));
 
-        return Response.json(
-            {
-                success: false,
-                message: "Internal server error"
-            },
-            {
-                status: 500
-            }
-        )
-    }
+    return Response.json({
+      success: true,
+      data: formatted,
+    });
+  } catch (error) {
+    console.error("GET ERROR:", error);
+    return Response.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
