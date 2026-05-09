@@ -1,14 +1,20 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PatentFormData {
   title: string;
   Applno: string;
   Status: string;
-  Inventors: string;
+  Inventors: string[];
+  otherInventorName: string;
   FilingDate: string;
   GrantDate: string;
+}
+
+interface TeamMember {
+  _id: string;
+  name: string;
 }
 
 const PatentForm = () => {
@@ -17,14 +23,57 @@ const PatentForm = () => {
       title: '',
       Applno: '',
       Status: '',
-      Inventors: '',
+      Inventors: [],
+      otherInventorName: '',
       FilingDate: '',
       GrantDate: ''
     }
   ]);
   
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string; details?: string[] } | null>(null);
+
+  // Fetch team members on component mount
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setTeamMembers(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching team members:', error);
+      } finally {
+        setIsLoadingTeam(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
+  const handleInventorsChange = (index: number, selectedInventors: string[]) => {
+    const updatedPatents = [...patents];
+    updatedPatents[index] = {
+      ...updatedPatents[index],
+      Inventors: selectedInventors,
+      // Reset otherInventorName if "Others" is not selected
+      otherInventorName: selectedInventors.includes('Others') ? updatedPatents[index].otherInventorName : ''
+    };
+    setPatents(updatedPatents);
+  };
+
+  const handleOtherInventorNameChange = (index: number, name: string) => {
+    const updatedPatents = [...patents];
+    updatedPatents[index] = {
+      ...updatedPatents[index],
+      otherInventorName: name
+    };
+    setPatents(updatedPatents);
+  };
 
   const handleChange = (index: number, field: keyof PatentFormData, value: string) => {
     const updatedPatents = [...patents];
@@ -42,7 +91,8 @@ const PatentForm = () => {
         title: '',
         Applno: '',
         Status: '',
-        Inventors: '',
+        Inventors: [],
+        otherInventorName: '',
         FilingDate: '',
         GrantDate: ''
       }
@@ -56,19 +106,39 @@ const PatentForm = () => {
     }
   };
 
+  const getInventorsString = (inventors: string[], otherInventorName: string): string => {
+    const selectedInventors = [...inventors];
+    
+    // Replace 'Others' with the custom name if provided
+    const othersIndex = selectedInventors.indexOf('Others');
+    if (othersIndex !== -1 && otherInventorName.trim()) {
+      selectedInventors[othersIndex] = otherInventorName.trim();
+    } else if (othersIndex !== -1 && !otherInventorName.trim()) {
+      // Remove 'Others' if no name provided
+      selectedInventors.splice(othersIndex, 1);
+    }
+    
+    return selectedInventors.join(', ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      // Filter out empty patents (all fields empty)
-      const patentsToSubmit = patents.filter(patent => 
-        patent.title.trim() || 
-        patent.Applno.trim() || 
-        patent.Status.trim() || 
-        patent.Inventors.trim()
-      );
+      // Process patents: convert inventors array to string and filter out empty ones
+      const patentsToSubmit = patents
+        .map(patent => ({
+          ...patent,
+          Inventors: getInventorsString(patent.Inventors, patent.otherInventorName)
+        }))
+        .filter(patent => 
+          patent.title.trim() || 
+          patent.Applno.trim() || 
+          patent.Status.trim() || 
+          patent.Inventors.trim()
+        );
 
       if (patentsToSubmit.length === 0) {
         setMessage({ type: 'error', text: 'Please add at least one patent with required fields.' });
@@ -76,12 +146,15 @@ const PatentForm = () => {
         return;
       }
 
+      // Remove otherInventorName from the data sent to API
+      const finalData = patentsToSubmit.map(({ otherInventorName, ...rest }) => rest);
+
       const response = await fetch('/api/patent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(patentsToSubmit),
+        body: JSON.stringify(finalData),
       });
 
       const result = await response.json();
@@ -89,8 +162,8 @@ const PatentForm = () => {
       if (result.success) {
         setMessage({ 
           type: 'success', 
-          text: patentsToSubmit.length > 1 
-            ? `${patentsToSubmit.length} patents added successfully!` 
+          text: finalData.length > 1 
+            ? `${finalData.length} patents added successfully!` 
             : 'Patent added successfully!' 
         });
         // Reset form
@@ -98,7 +171,8 @@ const PatentForm = () => {
           title: '',
           Applno: '',
           Status: '',
-          Inventors: '',
+          Inventors: [],
+          otherInventorName: '',
           FilingDate: '',
           GrantDate: ''
         }]);
@@ -124,8 +198,12 @@ const PatentForm = () => {
     patent.title.trim() && 
     patent.Applno.trim() && 
     patent.Status.trim() && 
-    patent.Inventors.trim()
+    (patent.Inventors.length > 0 || patent.otherInventorName.trim())
   );
+
+  // Prepare inventor options from team members
+  const inventorOptions = teamMembers.map(member => member.name);
+  inventorOptions.push('Others'); // Add "Others" option
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -175,7 +253,7 @@ const PatentForm = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {patents.map((patent, index) => (
-              <div key={index} className="border-2 border-blue-100 rounded-2xl p-6 bg-white/50 relative">
+              <div key={index} className="border-2 border-blue-100 rounded-2xl p-6 bg-white/50 relative group">
                 {/* Patent Header */}
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-bold text-blue-900 flex items-center">
@@ -188,7 +266,7 @@ const PatentForm = () => {
                     <button
                       type="button"
                       onClick={() => removePatent(index)}
-                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                       title="Remove patent"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +280,7 @@ const PatentForm = () => {
                 <div className="space-y-6">
                   {/* Patent Title */}
                   <div>
-                    <label className="block text-sm font-semibold text-blue-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Patent Title *
                     </label>
                     <textarea
@@ -217,7 +295,7 @@ const PatentForm = () => {
 
                   {/* Application Number */}
                   <div>
-                    <label className="block text-sm font-semibold text-blue-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Application Number *
                     </label>
                     <input
@@ -232,7 +310,7 @@ const PatentForm = () => {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-sm font-semibold text-blue-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Status *
                     </label>
                     <select
@@ -250,26 +328,76 @@ const PatentForm = () => {
                     </select>
                   </div>
 
-                  {/* Inventors */}
+                  {/* Inventors - Multi-select dropdown */}
                   <div>
-                    <label className="block text-sm font-semibold text-blue-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Inventors *
                     </label>
-                    <input
-                      type="text"
-                      value={patent.Inventors}
-                      onChange={(e) => handleChange(index, 'Inventors', e.target.value)}
-                      required
-                      className="w-full text-black px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                      placeholder="e.g., Samit Ari, John Doe, Jane Smith"
-                    />
+                    {isLoadingTeam ? (
+                      <div className="flex items-center space-x-2 text-blue-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span>Loading team members...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <select
+                          multiple
+                          value={patent.Inventors}
+                          onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            handleInventorsChange(index, selectedOptions);
+                          }}
+                          className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
+                          size={Math.min(6, inventorOptions.length)}
+                        >
+                          {inventorOptions.map((inventor) => (
+                            <option key={inventor} value={inventor}>
+                              {inventor}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-sm text-blue-600">
+                          Hold Ctrl (Cmd on Mac) to select multiple inventors
+                        </p>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Other Inventor Name - shown only when Others is selected */}
+                  {patent.Inventors.includes('Others') && (
+                    <div className="animate-fadeIn">
+                      <label className="block text-sm font-semibold text-black mb-2">
+                        Other Inventor Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={patent.otherInventorName}
+                        onChange={(e) => handleOtherInventorNameChange(index, e.target.value)}
+                        required
+                        className="w-full text-black px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        placeholder="Enter the inventor's full name"
+                      />
+                      <p className="text-xs text-blue-500 mt-1">
+                        Enter the name of the inventor who is not in the team list
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Selected Inventors Preview */}
+                  {(patent.Inventors.length > 0 || patent.otherInventorName) && (
+                    <div className="bg-blue-50 rounded-xl p-3">
+                      <p className="text-sm font-medium text-black mb-1">Selected Inventors:</p>
+                      <p className="text-sm text-black">
+                        {getInventorsString(patent.Inventors, patent.otherInventorName) || 'None selected'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Date Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Filing Date */}
                     <div>
-                      <label className="block  text-sm font-semibold text-blue-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Filing Date
                       </label>
                       <input
@@ -282,7 +410,7 @@ const PatentForm = () => {
 
                     {/* Grant Date */}
                     <div>
-                      <label className="block text-sm font-semibold text-blue-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Grant Date
                       </label>
                       <input
@@ -302,7 +430,7 @@ const PatentForm = () => {
               <button
                 type="button"
                 onClick={addMorePatent}
-                className="flex items-center px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors shadow-lg hover:shadow-xl"
+                className="flex items-center px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -335,14 +463,12 @@ const PatentForm = () => {
 
             {/* Form Note */}
             <div className="text-center">
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-black">
                 Fields marked with * are required. Empty patents will be ignored.
               </p>
             </div>
           </form>
         </div>
-
-      
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface JournalFormData {
   title: string;
-  author: string;
+  author: string[];
+  otherAuthorName: string;
   journal: string;
   year: string;
   volume: string;
@@ -14,11 +15,17 @@ interface JournalFormData {
   status: string;
 }
 
+interface TeamMember {
+  _id: string;
+  name: string;
+}
+
 const JournalForm = () => {
   const [journals, setJournals] = useState<JournalFormData[]>([
     {
       title: '',
-      author: '',
+      author: [],
+      otherAuthorName: '',
       journal: '',
       year: new Date().getFullYear().toString(),
       volume: '',
@@ -29,8 +36,50 @@ const JournalForm = () => {
     }
   ]);
   
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string; details?: string[] } | null>(null);
+
+  // Fetch team members on component mount
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setTeamMembers(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching team members:', error);
+      } finally {
+        setIsLoadingTeam(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
+  const handleAuthorChange = (index: number, selectedAuthors: string[]) => {
+    const updatedJournals = [...journals];
+    updatedJournals[index] = {
+      ...updatedJournals[index],
+      author: selectedAuthors,
+      // Reset otherAuthorName if "Others" is not selected
+      otherAuthorName: selectedAuthors.includes('Others') ? updatedJournals[index].otherAuthorName : ''
+    };
+    setJournals(updatedJournals);
+  };
+
+  const handleOtherAuthorNameChange = (index: number, name: string) => {
+    const updatedJournals = [...journals];
+    updatedJournals[index] = {
+      ...updatedJournals[index],
+      otherAuthorName: name
+    };
+    setJournals(updatedJournals);
+  };
 
   const handleChange = (index: number, field: keyof JournalFormData, value: string) => {
     const updatedJournals = [...journals];
@@ -46,7 +95,8 @@ const JournalForm = () => {
       ...journals,
       {
         title: '',
-        author: '',
+        author: [],
+        otherAuthorName: '',
         journal: '',
         year: new Date().getFullYear().toString(),
         volume: '',
@@ -65,19 +115,39 @@ const JournalForm = () => {
     }
   };
 
+  const getAuthorsString = (authors: string[], otherAuthorName: string): string => {
+    const selectedAuthors = [...authors];
+    
+    // Replace 'Others' with the custom name if provided
+    const othersIndex = selectedAuthors.indexOf('Others');
+    if (othersIndex !== -1 && otherAuthorName.trim()) {
+      selectedAuthors[othersIndex] = otherAuthorName.trim();
+    } else if (othersIndex !== -1 && !otherAuthorName.trim()) {
+      // Remove 'Others' if no name provided
+      selectedAuthors.splice(othersIndex, 1);
+    }
+    
+    return selectedAuthors.join(', ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      // Filter out empty journals (all required fields empty)
-      const journalsToSubmit = journals.filter(journal => 
-        journal.title.trim() && 
-        journal.author.trim() && 
-        journal.journal.trim() && 
-        journal.year.trim()
-      );
+      // Process journals: convert author array to string and filter out empty ones
+      const journalsToSubmit = journals
+        .map(journal => ({
+          ...journal,
+          author: getAuthorsString(journal.author, journal.otherAuthorName)
+        }))
+        .filter(journal => 
+          journal.title.trim() && 
+          journal.author.trim() && 
+          journal.journal.trim() && 
+          journal.year.trim()
+        );
 
       if (journalsToSubmit.length === 0) {
         setMessage({ 
@@ -88,12 +158,15 @@ const JournalForm = () => {
         return;
       }
 
+      // Remove otherAuthorName from the data sent to API
+      const finalData = journalsToSubmit.map(({ otherAuthorName, ...rest }) => rest);
+
       const response = await fetch('/api/journal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(journalsToSubmit),
+        body: JSON.stringify(finalData),
       });
 
       const result = await response.json();
@@ -101,14 +174,15 @@ const JournalForm = () => {
       if (result.success) {
         setMessage({ 
           type: 'success', 
-          text: journalsToSubmit.length > 1 
-            ? `${journalsToSubmit.length} journals added successfully!` 
+          text: finalData.length > 1 
+            ? `${finalData.length} journals added successfully!` 
             : 'Journal added successfully!' 
         });
         // Reset form
         setJournals([{
           title: '',
-          author: '',
+          author: [],
+          otherAuthorName: '',
           journal: '',
           year: new Date().getFullYear().toString(),
           volume: '',
@@ -158,10 +232,14 @@ const JournalForm = () => {
 
   const isFormValid = journals.some(journal => 
     journal.title.trim() && 
-    journal.author.trim() && 
+    (journal.author.length > 0 || journal.otherAuthorName.trim()) && 
     journal.journal.trim() && 
     journal.year.trim()
   );
+
+  // Prepare author options from team members
+  const authorOptions = teamMembers.map(member => member.name);
+  authorOptions.push('Others'); // Add "Others" option
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -247,7 +325,7 @@ const JournalForm = () => {
                 <div className="space-y-6">
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Title *
                     </label>
                     <textarea
@@ -255,29 +333,79 @@ const JournalForm = () => {
                       onChange={(e) => handleChange(index, 'title', e.target.value)}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"
+                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none text-black"
                       placeholder="Enter the complete journal title..."
                     />
                   </div>
 
-                  {/* Author */}
+                  {/* Authors - Multi-select dropdown */}
                   <div>
-                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Author(s) *
                     </label>
-                    <input
-                      type="text"
-                      value={journal.author}
-                      onChange={(e) => handleChange(index, 'author', e.target.value)}
-                      required
-                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                      placeholder="e.g., Samit Ari, John Doe, Jane Smith"
-                    />
+                    {isLoadingTeam ? (
+                      <div className="flex items-center space-x-2 text-green-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                        <span>Loading team members...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <select
+                          multiple
+                          value={journal.author}
+                          onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            handleAuthorChange(index, selectedOptions);
+                          }}
+                          className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
+                          size={Math.min(6, authorOptions.length)}
+                        >
+                          {authorOptions.map((author) => (
+                            <option key={author} value={author}>
+                              {author}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-sm text-green-600">
+                          Hold Ctrl (Cmd on Mac) to select multiple authors
+                        </p>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Other Author Name - shown only when Others is selected */}
+                  {journal.author.includes('Others') && (
+                    <div className="animate-fadeIn">
+                      <label className="block text-sm font-semibold text-black mb-2">
+                        Other Author Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={journal.otherAuthorName}
+                        onChange={(e) => handleOtherAuthorNameChange(index, e.target.value)}
+                        required
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
+                        placeholder="Enter the author's full name"
+                      />
+                      <p className="text-xs text-green-500 mt-1">
+                        Enter the name of the author who is not in the team list
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Selected Authors Preview */}
+                  {(journal.author.length > 0 || journal.otherAuthorName) && (
+                    <div className="bg-green-50 rounded-xl p-3">
+                      <p className="text-sm font-medium text-black mb-1">Selected Authors:</p>
+                      <p className="text-sm text-black">
+                        {getAuthorsString(journal.author, journal.otherAuthorName) || 'None selected'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Journal Name */}
                   <div>
-                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Journal Name *
                     </label>
                     <input
@@ -285,7 +413,7 @@ const JournalForm = () => {
                       value={journal.journal}
                       onChange={(e) => handleChange(index, 'journal', e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                       placeholder="e.g., IEEE Transactions on Pattern Analysis"
                     />
                   </div>
@@ -294,14 +422,14 @@ const JournalForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Year */}
                     <div>
-                      <label className="block text-sm font-semibold text-green-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Publication Year *
                       </label>
                       <select
                         value={journal.year}
                         onChange={(e) => handleChange(index, 'year', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                       >
                         <option value="">Select Year</option>
                         {yearOptions.map((year) => (
@@ -314,14 +442,14 @@ const JournalForm = () => {
 
                     {/* Type */}
                     <div>
-                      <label className="block text-sm font-semibold text-green-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Publication Type *
                       </label>
                       <select
                         value={journal.type}
                         onChange={(e) => handleChange(index, 'type', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                       >
                         <option value="">Select Type</option>
                         {typeOptions.map((type) => (
@@ -337,42 +465,42 @@ const JournalForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Volume */}
                     <div>
-                      <label className="block text-sm font-semibold text-green-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Volume
                       </label>
                       <input
                         type="text"
                         value={journal.volume}
                         onChange={(e) => handleChange(index, 'volume', e.target.value)}
-                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                         placeholder="e.g., 12"
                       />
                     </div>
 
                     {/* Issue */}
                     <div>
-                      <label className="block text-sm font-semibold text-green-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Issue
                       </label>
                       <input
                         type="text"
                         value={journal.issue}
                         onChange={(e) => handleChange(index, 'issue', e.target.value)}
-                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                         placeholder="e.g., 3"
                       />
                     </div>
 
                     {/* Pages */}
                     <div>
-                      <label className="block text-sm font-semibold text-green-800 mb-2">
+                      <label className="block text-sm font-semibold text-black mb-2">
                         Pages
                       </label>
                       <input
                         type="text"
                         value={journal.pages}
                         onChange={(e) => handleChange(index, 'pages', e.target.value)}
-                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                         placeholder="e.g., 123-145"
                       />
                     </div>
@@ -380,13 +508,13 @@ const JournalForm = () => {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                    <label className="block text-sm font-semibold text-black mb-2">
                       Status
                     </label>
                     <select
                       value={journal.status}
                       onChange={(e) => handleChange(index, 'status', e.target.value)}
-                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                      className="w-full px-4 py-3 border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black"
                     >
                       <option value="">Select Status</option>
                       {statusOptions.map((status) => (
@@ -438,7 +566,7 @@ const JournalForm = () => {
 
             {/* Form Note */}
             <div className="text-center">
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-black">
                 Fields marked with * are required. Empty journal entries will be ignored.
               </p>
             </div>
