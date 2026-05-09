@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ConferenceFormData {
   title: string;
-  authors: string;
+  authors: string[];
+  otherAuthorName: string;
   conference: string;
   year: string;
   month: string;
@@ -14,11 +15,17 @@ interface ConferenceFormData {
   status: string;
 }
 
+interface TeamMember {
+  _id: string;
+  name: string;
+}
+
 const ConferenceForm = () => {
   const [conferences, setConferences] = useState<ConferenceFormData[]>([
     {
       title: '',
-      authors: '',
+      authors: [],
+      otherAuthorName: '',
       conference: '',
       year: new Date().getFullYear().toString(),
       month: '',
@@ -29,8 +36,50 @@ const ConferenceForm = () => {
     }
   ]);
   
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string; details?: string[] } | null>(null);
+
+  // Fetch team members on component mount
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setTeamMembers(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching team members:', error);
+      } finally {
+        setIsLoadingTeam(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
+  const handleAuthorChange = (index: number, selectedAuthors: string[]) => {
+    const updatedConferences = [...conferences];
+    updatedConferences[index] = {
+      ...updatedConferences[index],
+      authors: selectedAuthors,
+      // Reset otherAuthorName if "Others" is not selected
+      otherAuthorName: selectedAuthors.includes('Others') ? updatedConferences[index].otherAuthorName : ''
+    };
+    setConferences(updatedConferences);
+  };
+
+  const handleOtherAuthorNameChange = (index: number, name: string) => {
+    const updatedConferences = [...conferences];
+    updatedConferences[index] = {
+      ...updatedConferences[index],
+      otherAuthorName: name
+    };
+    setConferences(updatedConferences);
+  };
 
   const handleChange = (index: number, field: keyof ConferenceFormData, value: string) => {
     const updatedConferences = [...conferences];
@@ -46,7 +95,8 @@ const ConferenceForm = () => {
       ...conferences,
       {
         title: '',
-        authors: '',
+        authors: [],
+        otherAuthorName: '',
         conference: '',
         year: new Date().getFullYear().toString(),
         month: '',
@@ -65,19 +115,39 @@ const ConferenceForm = () => {
     }
   };
 
+  const getAuthorsString = (authors: string[], otherAuthorName: string): string => {
+    const selectedAuthors = [...authors];
+    
+    // Replace 'Others' with the custom name if provided
+    const othersIndex = selectedAuthors.indexOf('Others');
+    if (othersIndex !== -1 && otherAuthorName.trim()) {
+      selectedAuthors[othersIndex] = otherAuthorName.trim();
+    } else if (othersIndex !== -1 && !otherAuthorName.trim()) {
+      // Remove 'Others' if no name provided
+      selectedAuthors.splice(othersIndex, 1);
+    }
+    
+    return selectedAuthors.join(', ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
 
     try {
-      // Filter out empty conferences (all required fields empty)
-      const conferencesToSubmit = conferences.filter(conference => 
-        conference.title.trim() && 
-        conference.authors.trim() && 
-        conference.conference.trim() && 
-        conference.year.trim()
-      );
+      // Process conferences: convert authors array to string and filter out empty ones
+      const conferencesToSubmit = conferences
+        .map(conference => ({
+          ...conference,
+          authors: getAuthorsString(conference.authors, conference.otherAuthorName)
+        }))
+        .filter(conference => 
+          conference.title.trim() && 
+          conference.authors.trim() && 
+          conference.conference.trim() && 
+          conference.year.trim()
+        );
 
       if (conferencesToSubmit.length === 0) {
         setMessage({ 
@@ -88,12 +158,15 @@ const ConferenceForm = () => {
         return;
       }
 
+      // Remove otherAuthorName from the data sent to API
+      const finalData = conferencesToSubmit.map(({ otherAuthorName, ...rest }) => rest);
+
       const response = await fetch('/api/conference', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(conferencesToSubmit),
+        body: JSON.stringify(finalData),
       });
 
       const result = await response.json();
@@ -101,14 +174,15 @@ const ConferenceForm = () => {
       if (result.success) {
         setMessage({ 
           type: 'success', 
-          text: conferencesToSubmit.length > 1 
-            ? `${conferencesToSubmit.length} conferences added successfully!` 
+          text: finalData.length > 1 
+            ? `${finalData.length} conferences added successfully!` 
             : 'Conference added successfully!' 
         });
         // Reset form
         setConferences([{
           title: '',
-          authors: '',
+          authors: [],
+          otherAuthorName: '',
           conference: '',
           year: new Date().getFullYear().toString(),
           month: '',
@@ -163,10 +237,14 @@ const ConferenceForm = () => {
 
   const isFormValid = conferences.some(conference => 
     conference.title.trim() && 
-    conference.authors.trim() && 
+    (conference.authors.length > 0 || conference.otherAuthorName.trim()) && 
     conference.conference.trim() && 
     conference.year.trim()
   );
+
+  // Prepare author options from team members
+  const authorOptions = teamMembers.map(member => member.name);
+  authorOptions.push('Others'); // Add "Others" option
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -260,25 +338,75 @@ const ConferenceForm = () => {
                       onChange={(e) => handleChange(index, 'title', e.target.value)}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"
+                      className="w-full px-4 py-3 border border-purple-200 rounded-xl text-black focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"
                       placeholder="Enter the complete conference paper title..."
                     />
                   </div>
 
-                  {/* Authors */}
+                  {/* Authors - Multi-select dropdown */}
                   <div>
                     <label className="block text-sm font-semibold text-purple-800 mb-2">
                       Author(s) *
                     </label>
-                    <input
-                      type="text"
-                      value={conference.authors}
-                      onChange={(e) => handleChange(index, 'authors', e.target.value)}
-                      required
-                      className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                      placeholder="e.g., Samit Ari, John Doe, Jane Smith"
-                    />
+                    {isLoadingTeam ? (
+                      <div className="flex items-center space-x-2 text-purple-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                        <span>Loading team members...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <select
+                          multiple
+                          value={conference.authors}
+                          onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            handleAuthorChange(index, selectedOptions);
+                          }}
+                          className="w-full px-4 py-3 border border-purple-200 rounded-xl text-black focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                          size={Math.min(6, authorOptions.length)}
+                        >
+                          {authorOptions.map((author) => (
+                            <option key={author} value={author}>
+                              {author}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-sm text-purple-600">
+                          Hold Ctrl (Cmd on Mac) to select multiple authors
+                        </p>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Other Author Name - shown only when Others is selected */}
+                  {conference.authors.includes('Others') && (
+                    <div className="animate-fadeIn">
+                      <label className="block text-sm font-semibold text-purple-800 mb-2">
+                        Other Author Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={conference.otherAuthorName}
+                        onChange={(e) => handleOtherAuthorNameChange(index, e.target.value)}
+                        required
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        placeholder="Enter the author's full name"
+                      />
+                      <p className="text-xs text-purple-500 mt-1">
+                        Enter the name of the author who is not in the team list
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Selected Authors Preview */}
+                  {(conference.authors.length > 0 || conference.otherAuthorName) && (
+                    <div className="bg-purple-50 rounded-xl p-3">
+                      <p className="text-sm font-medium text-purple-800 mb-1">Selected Authors:</p>
+                      <p className="text-sm text-purple-700">
+                        {getAuthorsString(conference.authors, conference.otherAuthorName) || 'None selected'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Conference Name */}
                   <div>
@@ -290,7 +418,7 @@ const ConferenceForm = () => {
                       value={conference.conference}
                       onChange={(e) => handleChange(index, 'conference', e.target.value)}
                       required
-                      className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                      className="w-full px-4 py-3 border border-purple-200 text-black rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                       placeholder="e.g., IEEE International Conference on Computer Vision"
                     />
                   </div>
@@ -306,7 +434,7 @@ const ConferenceForm = () => {
                         value={conference.year}
                         onChange={(e) => handleChange(index, 'year', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                       >
                         <option value="">Select Year</option>
                         {yearOptions.map((year) => (
@@ -325,7 +453,7 @@ const ConferenceForm = () => {
                       <select
                         value={conference.month}
                         onChange={(e) => handleChange(index, 'month', e.target.value)}
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                       >
                         <option value="">Select Month</option>
                         {monthOptions.map((month) => (
@@ -348,7 +476,7 @@ const ConferenceForm = () => {
                         type="text"
                         value={conference.location}
                         onChange={(e) => handleChange(index, 'location', e.target.value)}
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                         placeholder="e.g., Paris, France or Virtual"
                       />
                     </div>
@@ -362,7 +490,7 @@ const ConferenceForm = () => {
                         type="text"
                         value={conference.pages}
                         onChange={(e) => handleChange(index, 'pages', e.target.value)}
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                         placeholder="e.g., 123-145"
                       />
                     </div>
@@ -379,7 +507,7 @@ const ConferenceForm = () => {
                         value={conference.type}
                         onChange={(e) => handleChange(index, 'type', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                       >
                         <option value="">Select Type</option>
                         {typeOptions.map((type) => (
@@ -398,7 +526,7 @@ const ConferenceForm = () => {
                       <select
                         value={conference.status}
                         onChange={(e) => handleChange(index, 'status', e.target.value)}
-                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                        className="w-full px-4 py-3 border text-black border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                       >
                         <option value="">Select Status</option>
                         {statusOptions.map((status) => (
@@ -457,11 +585,6 @@ const ConferenceForm = () => {
             </div>
           </form>
         </div>
-
-        {/* Additional Info */}
-
-        {/* Common Conference Examples */}
-      
       </div>
     </div>
   );
