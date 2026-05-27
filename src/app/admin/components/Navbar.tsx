@@ -162,7 +162,18 @@ export default function AdminNavbar() {
   const menuItems: MenuItem[] = [
     { name: "Dashboard", href: "/admin" },
 
-    { name: "Team", href: "/admin/team" },
+    { name: "Team", href: "/admin/team",
+      dropdown:[
+        {
+          name:"Team",
+          href:"/admin/team"
+        },
+        {
+          name:"Upload Team",
+          href:"/admin/uploadTeam"
+        }
+      ]
+     },
 
     {
       name: "Research",
@@ -216,7 +227,18 @@ export default function AdminNavbar() {
 
     { name: "Courses", href: "/admin/courses" },
 
-    { name: "Events", href: "/admin/events" },
+    { name: "Events", href: "/admin/events",
+      dropdown:[
+        {
+          name:"Events",
+          href:"/admin/events"
+        },
+        {
+          name:"Upload Events",
+          href:"/admin/uploadEvents"
+        }
+      ]
+     },
 
     { name: "Gallery", href: "/admin/gallery" },
   ];
