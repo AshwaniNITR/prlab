@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -25,48 +25,75 @@ const ANIMATIONS = {
     visible: { opacity: 1, transition: { duration: 0.3 } },
     exit: { opacity: 0, transition: { duration: 0.3 } },
   },
+
   menuContainer: {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.15,
+      },
     },
     exit: {
       opacity: 0,
-      transition: { staggerChildren: 0.05, staggerDirection: -1 },
+      transition: {
+        staggerChildren: 0.04,
+        staggerDirection: -1,
+      },
     },
   },
+
   menuItem: {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-    exit: { opacity: 0, y: 20, transition: { duration: 0.3 } },
-  },
-  dropdown: {
-    hidden: { opacity: 0, height: 0 },
-    visible: { 
-      opacity: 1, 
-      height: "auto",
-      transition: { duration: 0.3 }
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.35 },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
+      y: 20,
+      transition: { duration: 0.25 },
+    },
+  },
+
+  dropdown: {
+    hidden: {
+      opacity: 0,
       height: 0,
-      transition: { duration: 0.2 }
+    },
+    visible: {
+      opacity: 1,
+      height: "auto",
+      transition: {
+        duration: 0.25,
+      },
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.2,
+      },
     },
   },
 };
 
 export default function AdminNavbar() {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const [isDesktop, setIsDesktop] = useState<boolean>(false);
-  const [isExitModalOpen, setIsExitModalOpen] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("/api/auth/logout", { method: "GET" });
+      const res = await fetch("/api/auth/logout", {
+        method: "GET",
+      });
+
       if (res.ok) {
         setIsExitModalOpen(false);
         router.push("/");
@@ -82,144 +109,242 @@ export default function AdminNavbar() {
     const checkScreenSize = () => {
       setIsDesktop(window.innerWidth >= 1500);
     };
-    
-    // Initial check
+
     checkScreenSize();
-    
-    // Add event listener
+
     window.addEventListener("resize", checkScreenSize);
-    
-    // Cleanup
-    return () => window.removeEventListener("resize", checkScreenSize);
+
+    return () =>
+      window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // Close on Esc
+  // ESC close
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  // Lock body scroll when open
-  useEffect(() => {
-    document.documentElement.classList.toggle("overflow-hidden", isOpen);
-    return () => document.documentElement.classList.remove("overflow-hidden");
-  }, [isOpen]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setOpenDropdown(null);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", onKey);
+
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const toggleMenu = () => setIsOpen((v: boolean) => !v);
-  const toggleDropdown = () => setDropdownOpen((v: boolean) => !v);
+  // Lock body scroll
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "overflow-hidden",
+      isOpen
+    );
 
-  const menuItems: MenuItem[] = [
-    { name: "Dashboard", href: "/admin" },
-    { name: "Team", href: "/admin/team" },
-    { name: "Research", href: "/admin/research" },
-    { 
-      name: "Publications", 
-      href: "/admin/publications",
-      dropdown: [
-        { name: "Patent", href: "/admin/publications/patent" },
-        { name: "Journal", href: "/admin/publications/journal" },
-        { name: "Conference", href: "/admin/publications/conference" },
-        { name: "Book Chapter", href: "/admin/publications/bookchapter" },
-      ]
-    },
-    { name: "Courses", href: "/admin/courses" },
-    { name: "Events", href: "/admin/events" },
-    { name: "Gallery", href: "/admin/gallery" },
-  ];
+    return () =>
+      document.documentElement.classList.remove(
+        "overflow-hidden"
+      );
+  }, [isOpen]);
 
-  const handleMenuItemClick = (item: MenuItem) => {
-    if (!item.dropdown) {
-      setIsOpen(false);
+  const toggleMenu = () => {
+    setIsOpen((prev) => !prev);
+
+    if (isOpen) {
+      setOpenDropdown(null);
     }
   };
 
-  const handleDropdownItemClick = () => {
-    setIsOpen(false);
-    setDropdownOpen(false);
+  const toggleDropdown = (name: string) => {
+    setOpenDropdown((prev) =>
+      prev === name ? null : name
+    );
   };
 
-  const renderMenuItem = (item: MenuItem, isMobile: boolean = false) => {
+  const menuItems: MenuItem[] = [
+    { name: "Dashboard", href: "/admin" },
+
+    { name: "Team", href: "/admin/team" },
+
+    {
+      name: "Research",
+      href: "/admin/research",
+      dropdown: [
+        {
+          name: "Research",
+          href: "/admin/research",
+        },
+        {
+          name: "Upload Research",
+          href: "/admin/uploadResearch",
+        },
+      ],
+    },
+
+    {
+      name: "Publications",
+      href: "/admin/publications",
+      dropdown: [
+        {
+          name: "Patent",
+          href: "/admin/publications/patent",
+        },
+        {
+          name: "Upload Patent",
+          href: "/admin/uploadPatents",
+        },
+        {
+          name: "Journal",
+          href: "/admin/publications/journal",
+        },
+        {
+          name: "Upload Journal",
+          href: "/admin/uploadJournal",
+        },
+        {
+          name: "Conference",
+          href: "/admin/publications/conference",
+        },
+        {
+          name: "Upload Conference",
+          href: "/admin/uploadConference",
+        },
+        {
+          name: "Book Chapter",
+          href: "/admin/publications/bookchapter",
+        },
+      ],
+    },
+
+    { name: "Courses", href: "/admin/courses" },
+
+    { name: "Events", href: "/admin/events" },
+
+    { name: "Gallery", href: "/admin/gallery" },
+  ];
+
+  const handleDropdownItemClick = () => {
+    setIsOpen(false);
+    setOpenDropdown(null);
+  };
+
+  const renderMenuItem = (
+    item: MenuItem,
+    isMobile = false
+  ) => {
     if (item.dropdown) {
+      const isCurrentDropdownOpen =
+        openDropdown === item.name;
+
+      // MOBILE
       if (isMobile) {
-        // Mobile: Always expanded with red line for admin
         return (
-          <div key={item.name} className="w-full">
-            {/* Publications main item */}
-            <motion.div
-              variants={ANIMATIONS.menuItem}
-              className="text-xl text-white py-2 px-4 rounded-lg flex items-center gap-2"
+          <motion.div
+            key={item.name}
+            variants={ANIMATIONS.menuItem}
+            className="w-full"
+          >
+            <button
+              onClick={() =>
+                toggleDropdown(item.name)
+              }
+              className="w-full flex items-center justify-between text-xl text-white py-3 px-4 rounded-lg hover:bg-white/5 transition-colors"
             >
-              {item.name}
-            </motion.div>
-            
-            {/* Dropdown items with red line */}
-            <div className="ml-6 border-l-2 border-red-400 pl-4 space-y-2 mt-2">
-              {item.dropdown.map((dropdownItem: DropdownItem) => (
-                <motion.a
-                  key={dropdownItem.name}
-                  href={dropdownItem.href}
-                  onClick={handleDropdownItemClick}
-                  className="block text-lg text-white/90 hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
-                  variants={ANIMATIONS.menuItem}
+              <span>{item.name}</span>
+
+              <motion.span
+                animate={{
+                  rotate: isCurrentDropdownOpen
+                    ? 180
+                    : 0,
+                }}
+                transition={{ duration: 0.25 }}
+              >
+                ▼
+              </motion.span>
+            </button>
+
+            <AnimatePresence>
+              {isCurrentDropdownOpen && (
+                <motion.div
+                  variants={ANIMATIONS.dropdown}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="overflow-hidden"
                 >
-                  {dropdownItem.name}
-                </motion.a>
-              ))}
-            </div>
-          </div>
+                  <div className="ml-6 border-l-2 border-red-400 pl-4 mt-2 space-y-2">
+                    {item.dropdown.map(
+                      (dropdownItem) => (
+                        <a
+                          key={dropdownItem.name}
+                          href={dropdownItem.href}
+                          onClick={
+                            handleDropdownItemClick
+                          }
+                          className="block text-lg text-white/90 hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5"
+                        >
+                          {dropdownItem.name}
+                        </a>
+                      )
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         );
       }
 
-      // Desktop: Collapsible dropdown
+      // DESKTOP
       return (
-        <div key={item.name} className="relative" ref={dropdownRef}>
+        <div
+          key={item.name}
+          className="relative z-[100]"
+        >
           <button
-            onClick={toggleDropdown}
+            onClick={() =>
+              toggleDropdown(item.name)
+            }
             className="text-xl md:text-2xl text-white hover:text-red-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
           >
             {item.name}
+
             <motion.span
-              animate={{ rotate: dropdownOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+              animate={{
+                rotate: isCurrentDropdownOpen
+                  ? 180
+                  : 0,
+              }}
+              transition={{ duration: 0.25 }}
               className="text-sm"
             >
               ▼
             </motion.span>
           </button>
-          
+
           <AnimatePresence>
-            {dropdownOpen && (
+            {isCurrentDropdownOpen && (
               <motion.div
                 variants={ANIMATIONS.dropdown}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="absolute left-0 top-full mt-1 bg-gray-800/90 backdrop-blur-sm rounded-lg overflow-hidden min-w-[200px] border-l-4 border-red-500"
+                className="absolute left-0 top-full mt-2 min-w-[240px] overflow-hidden rounded-xl border border-red-500/20 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-[200]"
               >
                 <div className="py-2">
-                  {item.dropdown.map((dropdownItem: DropdownItem) => (
-                    <a
-                      key={dropdownItem.name}
-                      href={dropdownItem.href}
-                      onClick={handleDropdownItemClick}
-                      className="block text-white hover:text-red-300 transition-colors py-3 px-6 hover:bg-white/5 border-l-2 border-red-400/50 ml-2"
-                    >
-                      {dropdownItem.name}
-                    </a>
-                  ))}
+                  {item.dropdown.map(
+                    (dropdownItem) => (
+                      <a
+                        key={dropdownItem.name}
+                        href={dropdownItem.href}
+                        onClick={
+                          handleDropdownItemClick
+                        }
+                        className="block px-5 py-3 text-white hover:text-red-300 hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-red-400"
+                      >
+                        {dropdownItem.name}
+                      </a>
+                    )
+                  )}
                 </div>
               </motion.div>
             )}
@@ -233,8 +358,15 @@ export default function AdminNavbar() {
         key={item.name}
         href={item.href}
         variants={ANIMATIONS.menuItem}
-        className={`${isMobile ? 'text-xl text-white' : 'text-xl md:text-2xl text-white'} hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
-        onClick={() => handleMenuItemClick(item)}
+        onClick={() => {
+          setIsOpen(false);
+          setOpenDropdown(null);
+        }}
+        className={`${
+          isMobile
+            ? "text-xl text-white"
+            : "text-xl md:text-2xl text-white"
+        } hover:text-red-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
       >
         {item.name}
       </motion.a>
@@ -243,59 +375,79 @@ export default function AdminNavbar() {
 
   return (
     <>
-      {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
-      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
+      {/* MOBILE NAV */}
+      <nav
+        className={`${
+          isDesktop ? "hidden" : "block"
+        } fixed top-0 left-0 w-full bg-white/20 z-[60]`}
+      >
         <div className="flex justify-between items-center h-16 px-4">
-          {/* Logo with Admin label */}
-          <button 
-            onClick={() => setIsExitModalOpen(true)}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer text-left"
-            title="Exit Admin Panel"
+          <button
+            onClick={() =>
+              setIsExitModalOpen(true)
+            }
+            className="flex items-center gap-3"
           >
-            <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={40} height={40} />
-            <span className="text-red-400 font-bold text-lg tracking-wider">ADMIN</span>
+            <Image
+              src="/nitrlogo.png"
+              className="rounded-lg bg-white/10 p-1"
+              alt="Logo"
+              width={40}
+              height={40}
+            />
+
+            <span className="text-red-400 font-bold text-lg tracking-wider">
+              ADMIN
+            </span>
           </button>
 
-          {/* Hamburger / Cross button */}
           <button
             onClick={toggleMenu}
-            aria-label="Toggle menu"
-            aria-expanded={isOpen}
-            className={`flex flex-col justify-center items-center w-12 h-12 rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-sm transition-all
-              ${isOpen ? "fixed top-4 right-4 z-[70]" : "relative z-[60]"}`}
+            className={`flex flex-col justify-center items-center w-12 h-12 rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-sm transition-all ${
+              isOpen
+                ? "fixed top-4 right-4 z-[70]"
+                : "relative z-[60]"
+            }`}
           >
             <span
               className={`block w-6 h-0.5 bg-red-400 mb-1.5 transition-transform ${
-                isOpen ? "rotate-45 translate-y-2" : ""
+                isOpen
+                  ? "rotate-45 translate-y-2"
+                  : ""
               }`}
             />
+
             <span
               className={`block w-6 h-0.5 bg-red-400 transition-opacity ${
                 isOpen ? "opacity-0" : ""
               }`}
             />
+
             <span
               className={`block w-6 h-0.5 bg-red-400 mt-1.5 transition-transform ${
-                isOpen ? "-rotate-45 -translate-y-2" : ""
+                isOpen
+                  ? "-rotate-45 -translate-y-2"
+                  : ""
               }`}
             />
           </button>
         </div>
 
-        {/* Overlay + Menu */}
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Dark overlay behind button */}
               <motion.div
                 className="fixed inset-0 bg-gray-900/95 z-40"
                 variants={ANIMATIONS.overlay}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  setOpenDropdown(null);
+                }}
               />
-              {/* Menu layer */}
+
               <motion.div
                 className="fixed inset-0 z-50 flex flex-col justify-center items-center"
                 variants={ANIMATIONS.menuContainer}
@@ -307,8 +459,13 @@ export default function AdminNavbar() {
                   className="flex flex-col items-start px-6 w-full max-w-sm"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  <div className="mb-6 text-red-500 font-bold tracking-widest text-2xl border-b border-red-500/30 pb-2 w-full">ADMIN PANEL</div>
-                  {menuItems.map((item) => renderMenuItem(item, true))}
+                  <div className="mb-6 text-red-500 font-bold tracking-widest text-2xl border-b border-red-500/30 pb-2 w-full">
+                    ADMIN PANEL
+                  </div>
+
+                  {menuItems.map((item) =>
+                    renderMenuItem(item, true)
+                  )}
                 </motion.div>
               </motion.div>
             </>
@@ -316,34 +473,45 @@ export default function AdminNavbar() {
         </AnimatePresence>
       </nav>
 
-      {/* ---------------- DESKTOP SIDEBAR (1500px and above) ---------------- */}
-      <div className={`${isDesktop ? 'block' : 'hidden'}`}>
+      {/* DESKTOP SIDEBAR */}
+      <div
+        className={`${
+          isDesktop ? "block" : "hidden"
+        }`}
+      >
         <div
-          className={`fixed top-0 left-0 h-screen w-20 flex flex-col items-center py-6 z-50 
-          ${
+          className={`fixed top-0 left-0 h-screen w-20 flex flex-col items-center py-6 z-50 ${
             isOpen
               ? "bg-transparent"
               : "bg-white/10 backdrop-blur-lg border-r border-red-500 shadow-xl"
           }`}
         >
-          {/* Logo with Admin label */}
-          <button 
-            onClick={() => setIsExitModalOpen(true)}
-            className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
-            title="Exit Admin Panel"
+          <button
+            onClick={() =>
+              setIsExitModalOpen(true)
+            }
+            className="flex flex-col items-center gap-2"
           >
-            <Image src="/nitrlogo.png" className="rounded-lg bg-white/10 p-1" alt="Logo" width={50} height={50} />
-            {!isOpen && <span className="text-red-400 font-bold text-xs tracking-widest mt-2">ADMIN</span>}
+            <Image
+              src="/nitrlogo.png"
+              className="rounded-lg bg-white/10 p-1"
+              alt="Logo"
+              width={50}
+              height={50}
+            />
+
+            {!isOpen && (
+              <span className="text-red-400 font-bold text-xs tracking-widest mt-2">
+                ADMIN
+              </span>
+            )}
           </button>
-          
+
           <div className="flex-1" />
-          
-          {/* Desktop hamburger */}
+
           {!isOpen && (
             <button
               onClick={toggleMenu}
-              aria-label="Open menu"
-              aria-expanded={isOpen}
               className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-red-500/10 backdrop-blur-sm border border-red-500/30 hover:bg-red-500/20 transition-colors"
             >
               <span className="block w-6 h-0.5 bg-red-400 mb-1.5" />
@@ -355,7 +523,6 @@ export default function AdminNavbar() {
           <div className="flex-1" />
         </div>
 
-        {/* Overlay + Menu */}
         <AnimatePresence>
           {isOpen && (
             <>
@@ -365,7 +532,10 @@ export default function AdminNavbar() {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  setOpenDropdown(null);
+                }}
               />
 
               <motion.div
@@ -375,11 +545,12 @@ export default function AdminNavbar() {
                 animate="visible"
                 exit="exit"
               >
-                {/* Desktop cross at top-right only */}
                 <button
-                  onClick={() => setIsOpen(false)}
-                  aria-label="Close menu"
-                  className="absolute top-6 right-6 text-4xl text-white z-[60] hover:text-red-400 transition-colors"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setOpenDropdown(null);
+                  }}
+                  className="absolute top-6 right-6 text-4xl text-white hover:text-red-400"
                 >
                   &times;
                 </button>
@@ -389,10 +560,12 @@ export default function AdminNavbar() {
                 </div>
 
                 <motion.div
-                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4 relative mt-16"
+                  className="flex flex-wrap items-center justify-center gap-6 max-w-5xl px-4 relative mt-16"
                   variants={ANIMATIONS.menuContainer}
                 >
-                  {menuItems.map((item) => renderMenuItem(item))}
+                  {menuItems.map((item) =>
+                    renderMenuItem(item)
+                  )}
                 </motion.div>
               </motion.div>
             </>
@@ -400,7 +573,7 @@ export default function AdminNavbar() {
         </AnimatePresence>
       </div>
 
-      {/* ---------------- EXIT CONFIRMATION MODAL ---------------- */}
+      {/* EXIT MODAL */}
       <AnimatePresence>
         {isExitModalOpen && (
           <>
@@ -409,34 +582,58 @@ export default function AdminNavbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsExitModalOpen(false)}
+              onClick={() =>
+                setIsExitModalOpen(false)
+              }
             />
+
             <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
               <motion.div
                 className="bg-gray-900 border border-red-500/30 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl pointer-events-auto"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{
+                  opacity: 0,
+                  scale: 0.95,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.95,
+                  y: 20,
+                }}
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
                     <LogOut className="w-8 h-8 text-red-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Exit Admin Panel?</h3>
+
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Exit Admin Panel?
+                  </h3>
+
                   <p className="text-gray-400 mb-8">
-                    Are you sure you want to log out and return to the main site?
+                    Are you sure you want to log
+                    out and return to the main
+                    site?
                   </p>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-3 w-full">
                     <button
-                      onClick={() => setIsExitModalOpen(false)}
-                      className="px-6 py-3 rounded-xl bg-gray-800 text-white font-medium hover:bg-gray-700 transition-colors w-full border border-gray-700 hover:border-gray-600"
+                      onClick={() =>
+                        setIsExitModalOpen(false)
+                      }
+                      className="px-6 py-3 rounded-xl bg-gray-800 text-white font-medium hover:bg-gray-700 transition-colors w-full"
                     >
                       Cancel
                     </button>
+
                     <button
                       onClick={handleLogout}
-                      className="px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors w-full shadow-lg shadow-red-600/20 hover:shadow-red-600/40"
+                      className="px-6 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors w-full"
                     >
                       Log Out
                     </button>

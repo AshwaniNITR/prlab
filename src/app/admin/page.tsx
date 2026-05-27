@@ -1,5 +1,6 @@
 "use client"
 
+import Profile from "@/app/admin/components/Profile";
 import About from "./components/About";
 
 
@@ -13,6 +14,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100">
       <Dashboard/>  
       <About/>
+      <Profile/>
     </div>
   );
 }
