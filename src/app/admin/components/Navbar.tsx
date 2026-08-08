@@ -235,7 +235,7 @@ export default function AdminNavbar() {
         },
         {
           name:"Upload Events",
-          href:"/admin/uploadEvents"
+          href:"/admin/uploadEvent"
         }
       ]
      },
@@ -317,62 +317,91 @@ export default function AdminNavbar() {
       }
 
       // DESKTOP
-      return (
-        <div
-          key={item.name}
-          className="relative z-[100]"
+     // DESKTOP
+return (
+  <div
+    key={item.name}
+    className={`relative ${
+      isCurrentDropdownOpen ? "z-[1000]" : "z-[100]"
+    }`}
+  >
+    <button
+      onClick={() => toggleDropdown(item.name)}
+      className="text-xl md:text-2xl text-white hover:text-red-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
+    >
+      {item.name}
+
+      <motion.span
+        animate={{
+          rotate: isCurrentDropdownOpen ? 180 : 0,
+        }}
+        transition={{ duration: 0.25 }}
+        className="text-sm"
+      >
+        ▼
+      </motion.span>
+    </button>
+
+    <AnimatePresence>
+      {isCurrentDropdownOpen && (
+        <motion.div
+          variants={ANIMATIONS.dropdown}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="
+            absolute
+            left-0
+            top-full
+            mt-3
+
+            min-w-[260px]
+            overflow-hidden
+            rounded-2xl
+
+            bg-slate-900/40
+            border border-white/25
+
+            shadow-[0_10px_40px_rgba(0,0,0,0.45)]
+
+            z-[9999]
+          "
+          style={{
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
         >
-          <button
-            onClick={() =>
-              toggleDropdown(item.name)
-            }
-            className="text-xl md:text-2xl text-white hover:text-red-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
-          >
-            {item.name}
+          <div className="py-2">
+            {item.dropdown.map((dropdownItem) => (
+              <a
+                key={dropdownItem.name}
+                href={dropdownItem.href}
+                onClick={handleDropdownItemClick}
+                className="
+                  block
+                  px-5 py-3
+                  text-white/90
 
-            <motion.span
-              animate={{
-                rotate: isCurrentDropdownOpen
-                  ? 180
-                  : 0,
-              }}
-              transition={{ duration: 0.25 }}
-              className="text-sm"
-            >
-              ▼
-            </motion.span>
-          </button>
+                  transition-all
+                  duration-200
 
-          <AnimatePresence>
-            {isCurrentDropdownOpen && (
-              <motion.div
-                variants={ANIMATIONS.dropdown}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="absolute left-0 top-full mt-2 min-w-[240px] overflow-hidden rounded-xl border border-red-500/20 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-[200]"
+                  border-l-2
+                  border-transparent
+
+                  hover:bg-white/10
+                  hover:text-white
+                  hover:border-red-400
+                "
               >
-                <div className="py-2">
-                  {item.dropdown.map(
-                    (dropdownItem) => (
-                      <a
-                        key={dropdownItem.name}
-                        href={dropdownItem.href}
-                        onClick={
-                          handleDropdownItemClick
-                        }
-                        className="block px-5 py-3 text-white hover:text-red-300 hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-red-400"
-                      >
-                        {dropdownItem.name}
-                      </a>
-                    )
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      );
+                {dropdownItem.name}
+              </a>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+);
     }
 
     return (
