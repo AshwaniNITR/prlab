@@ -16,10 +16,10 @@ export async function POST(request: Request) {
         const validationErrors: string[] = [];
         
         for (const journal of journalsToProcess) {
-            const { title, author, journal: journalName, year } = journal;
+            const { title, authors, journal: journalName, year } = journal;
             
             // Check required fields
-            if (!title || !author || !journalName || !year) {
+            if (!title || !authors || !journalName || !year) {
                 validationErrors.push(`Missing required fields for journal: ${title || 'Untitled'}`);
                 continue;
             }
@@ -27,13 +27,13 @@ export async function POST(request: Request) {
             // Check for duplicates
             const existingJournal = await JournalModel.findOne({ 
                 title, 
-                author, 
+                authors, 
                 journal: journalName, 
                 year 
             });
             
             if (existingJournal) {
-                validationErrors.push(`Journal "${title}" by ${author} (${year}) already exists`);
+                validationErrors.push(`Journal "${title}" by ${authors.join(", ")} (${year}) already exists`);
             }
         }
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         for (const journalData of journalsToProcess) {
             const { 
                 title, 
-                author, 
+                authors, 
                 journal: journalName, 
                 year, 
                 volume, 
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
             const newJournal = new JournalModel({
                 title,
-                author: author || "",
+                authors: authors || [],
                 journal: journalName || "",
                 year: year || null,
                 volume: volume || "",

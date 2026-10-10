@@ -1,7 +1,7 @@
 // app/team/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 
 interface TeamMember {
@@ -12,6 +12,31 @@ interface TeamMember {
   enrolledDate?: string;
   graduatedDate?: string;
   Description?: string;
+}
+
+interface Publication {
+  _id: string;
+  title?: string;
+  // Patent fields
+  Applno?: string;
+  Status?: string;
+  Inventors?: string;
+  FilingDate?: string;
+  GrantDate?: string;
+  // Journal / Conference fields (flexible — matched by multiple possible keys)
+  Authors?: string;
+  Author?: string;
+  authors?: string;
+  JournalName?: string;
+  ConferenceName?: string;
+  Year?: string;
+  [key: string]: any;
+}
+
+interface PublicationsState {
+  journals: Publication[];
+  patents: Publication[];
+  conferences: Publication[];
 }
 
 type Category = 'all' | 'present' | 'past' | 'phd' | 'mtech' | 'btech';
@@ -33,6 +58,13 @@ export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // NEW: publications from masterApi
+  const [publications, setPublications] = useState<PublicationsState>({
+    journals: [],
+    patents: [],
+    conferences: [],
+  });
+
   useEffect(() => {
     fetchTeamMembers();
   }, []);
@@ -45,17 +77,28 @@ export default function TeamPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/team');
-      
-      if (!response.ok) {
+      const response = await fetch('https://prlab.vercel.app/api/team');
+      const additional = await fetch('https://prlab.vercel.app/api/masterApi');
+      if (!response.ok || !additional.ok) {
         throw new Error('Failed to fetch team members');
       }
-      
+
       const data = await response.json();
+      const additionalData = await additional.json();
+
       if (data.success) {
         setTeamMembers(data.data);
       } else {
         throw new Error(data.message || 'Failed to fetch team members');
+      }
+
+      // NEW: store publications from masterApi
+      if (additionalData?.success && additionalData?.data) {
+        setPublications({
+          journals: additionalData.data.journals || [],
+          patents: additionalData.data.patents || [],
+          conferences: additionalData.data.conferences || [],
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -67,7 +110,7 @@ export default function TeamPage() {
 
   const getMemberCategory = (member: TeamMember): 'phd' | 'mtech' | 'btech' => {
     const designation = member.designation.toLowerCase();
-    
+
     if (designation.includes('phd') || designation.includes('ph.d')) {
       return 'phd';
     } else if (designation.includes('mtech') || designation.includes('m.tech') || designation.includes('masters')) {
@@ -75,8 +118,7 @@ export default function TeamPage() {
     } else if (designation.includes('btech') || designation.includes('b.tech') || designation.includes('bachelor')) {
       return 'btech';
     }
-    
-    // Default fallback based on common patterns
+
     if (designation.includes('phd')) return 'phd';
     if (designation.includes('mtech')) return 'mtech';
     return 'btech';
@@ -104,19 +146,17 @@ export default function TeamPage() {
       return;
     }
 
-    // For phd, mtech, btech categories
     const filtered = teamMembers.filter(member => {
       const memberCategory = getMemberCategory(member);
       return memberCategory === category;
     });
-    
+
     setFilteredMembers(filtered);
   };
 
   const openMemberModal = (member: TeamMember) => {
     setSelectedMember(member);
     setIsModalOpen(true);
-    // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
   };
 
@@ -140,169 +180,345 @@ export default function TeamPage() {
 
   const categoryStats = getCategoryStats();
 
-// Simple scrollable modal for mobile
-// Modal component - Proper sizing for both mobile and desktop
-const MemberModal = () => {
-  if (!selectedMember) return null;
-
-  const status = getStatus(selectedMember);
-  const category = getMemberCategory(selectedMember);
-  
-  const categoryColors = {
-    phd: 'bg-blue-100 text-blue-800',
-    mtech: 'bg-yellow-100 text-yellow-800',
-    btech: 'bg-red-100 text-red-800',
+  // NEW: helper to check if member's name appears in an author string
+  const isAuthorMatch = (memberName: string, authorString?: string | null): boolean => {
+    if (!authorString || !memberName) return false;
+    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+    return normalize(authorString).includes(normalize(memberName));
   };
 
-  const statusColors = {
-    present: 'bg-green-100 text-green-800',
-    past: 'bg-purple-100 text-purple-800',
-  };
+  // NEW: publications for the currently selected member
+  const selectedMemberPublications = useMemo(() => {
+    if (!selectedMember) return { journals: [], patents: [], conferences: [] };
 
-  return (
-    <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 backdrop-blur-sm bg-opacity-60"
-        onClick={closeModal}
-      />
+    const name = selectedMember.name;
 
-      {/* Modal Container */}
-      <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]">
-            {/* Close button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
-              aria-label="Close modal"
-            >
-              <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+    const patents = publications.patents.filter(p =>
+      isAuthorMatch(name, p.Inventors)
+    );
 
-            {/* Modal Content */}
-            <div className="flex flex-col md:flex-row h-full">
-              {/* Left Column - Image (Fixed Height) */}
-              <div className="w-full md:w-2/5">
-                <div className="relative h-64 md:h-full">
-                  {selectedMember.image ? (
-                    <Image
-                      src={selectedMember.image}
-                      alt={selectedMember.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 40vw"
-                      priority
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
+    const journals = publications.journals.filter(j => {
+      const authorField = j.Authors ?? j.Author ?? j.authors ?? '';
+      return isAuthorMatch(name, authorField);
+    });
+
+    const conferences = publications.conferences.filter(c => {
+      const authorField = c.Authors ?? c.Author ?? c.authors ?? '';
+      return isAuthorMatch(name, authorField);
+    });
+
+    return { journals, patents, conferences };
+  }, [publications, selectedMember]);
+
+  const totalPublications =
+    selectedMemberPublications.journals.length +
+    selectedMemberPublications.patents.length +
+    selectedMemberPublications.conferences.length;
+
+  // Modal component - Proper sizing for both mobile and desktop
+  const MemberModal = () => {
+    if (!selectedMember) return null;
+
+    // NEW: view state inside modal
+    const [showPublications, setShowPublications] = useState(false);
+
+    const status = getStatus(selectedMember);
+    const category = getMemberCategory(selectedMember);
+
+    const categoryColors = {
+      phd: 'bg-blue-100 text-blue-800',
+      mtech: 'bg-yellow-100 text-yellow-800',
+      btech: 'bg-red-100 text-red-800',
+    };
+
+    const statusColors = {
+      present: 'bg-green-100 text-green-800',
+      past: 'bg-purple-100 text-purple-800',
+    };
+
+    return (
+      <div className="fixed inset-0 z-50">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 backdrop-blur-sm bg-opacity-60"
+          onClick={closeModal}
+        />
+
+        {/* Modal Container */}
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]">
+              {/* Close button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+                aria-label="Close modal"
+              >
+                <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Modal Content */}
+              <div className="flex flex-col md:flex-row h-full">
+                {/* Left Column - Image (Fixed Height) */}
+                <div className="w-full md:w-2/5">
+                  <div className="relative h-64 md:h-full">
+                    {selectedMember.image ? (
+                      <Image
+                        src={selectedMember.image}
+                        alt={selectedMember.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        priority
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+                      <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
+                        {status === 'present' ? 'Present' : 'Alumni'}
+                      </span>
+                      <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
+                        {category.toUpperCase()}
+                      </span>
                     </div>
-                  )}
-                  
-                  {/* Badges on image */}
-                  <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
-                    <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
-                      {status === 'present' ? 'Present' : 'Alumni'}
-                    </span>
-                    <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
-                      {category.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Details (Scrollable) */}
-              <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
-                {/* Name and Designation */}
-                <div className="mb-6">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                    {selectedMember.name}
-                  </h2>
-                  <p className="text-lg md:text-xl text-gray-700 font-medium">
-                    {selectedMember.designation}
-                  </p>
-                </div>
-
-                {/* Dates Section */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Timeline</h3>
-                  <div className="space-y-3">
-                    {selectedMember.enrolledDate && (
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Enrolled Date</p>
-                          <p className="font-medium text-gray-900">
-                            {new Date(selectedMember.enrolledDate).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {selectedMember.graduatedDate && (
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Graduated Date</p>
-                          <p className="font-medium text-gray-900">
-                            {new Date(selectedMember.graduatedDate).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Description Section */}
-                <div className="pb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
-                  {selectedMember.Description ? (
-                    <div className="text-gray-700 leading-relaxed whitespace-pre-line max-h-[300px] overflow-y-auto pr-2">
-                      {selectedMember.Description}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 italic">No description provided.</p>
-                  )}
-                </div>
+                {/* Right Column - Details (Scrollable) */}
+                <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
+                  {!showPublications ? (
+                    <>
+                      {/* --- PROFILE VIEW (unchanged) --- */}
+                      <div className="mb-6">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                          {selectedMember.name}
+                        </h2>
+                        <p className="text-lg md:text-xl text-gray-700 font-medium">
+                          {selectedMember.designation}
+                        </p>
+                      </div>
 
-                {/* Bottom Close Button for Mobile Only */}
-                <div className="block md:hidden pt-4">
-                  <button
-                    onClick={closeModal}
-                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Close
-                  </button>
+                      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Timeline</h3>
+                        <div className="space-y-3">
+                          {selectedMember.enrolledDate && (
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-600">Enrolled Date</p>
+                                <p className="font-medium text-gray-900">
+                                  {new Date(selectedMember.enrolledDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedMember.graduatedDate && (
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-600">Graduated Date</p>
+                                <p className="font-medium text-gray-900">
+                                  {new Date(selectedMember.graduatedDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
+                        {selectedMember.Description ? (
+                          <div className="text-gray-700 leading-relaxed whitespace-pre-line max-h-[300px] overflow-y-auto pr-2">
+                            {selectedMember.Description}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 italic">No description provided.</p>
+                        )}
+                      </div>
+
+                      {/* NEW: Publications button */}
+                      <div className="pt-4 border-t border-gray-100">
+                        <button
+                          onClick={() => setShowPublications(true)}
+                          className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          Publications ({totalPublications})
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* --- PUBLICATIONS VIEW (NEW) --- */}
+                      <div className="mb-6 flex items-start justify-between gap-4">
+                        <div>
+                          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                            Publications
+                          </h2>
+                          <p className="text-gray-600">{selectedMember.name}</p>
+                        </div>
+                        <button
+                          onClick={() => setShowPublications(false)}
+                          className="flex-shrink-0 flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                          </svg>
+                          Back to Profile
+                        </button>
+                      </div>
+
+                      {totalPublications === 0 ? (
+                        <div className="text-center py-12">
+                          <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          <p className="text-gray-500 italic">No publications found for this member.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-8">
+                          {/* Patents */}
+                          {selectedMemberPublications.patents.length > 0 && (
+                            <section>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                  Patents
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  ({selectedMemberPublications.patents.length})
+                                </span>
+                              </h3>
+                              <div className="space-y-3">
+                                {selectedMemberPublications.patents.map((p) => (
+                                  <div key={p._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                    <p className="font-medium text-gray-900 mb-2">
+                                      {p.title}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                      {p.Applno && (
+                                        <span className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
+                                          Appl. No: {p.Applno}
+                                        </span>
+                                      )}
+                                      {p.Status && (
+                                        <span className={`px-2 py-1 rounded ${p.Status.toLowerCase() === 'granted'
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-yellow-100 text-yellow-800'
+                                          }`}>
+                                          {p.Status}
+                                        </span>
+                                      )}
+                                      {p.FilingDate && (
+                                        <span className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
+                                          Filed: {new Date(p.FilingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          )}
+
+                          {/* Journals */}
+                          {selectedMemberPublications.journals.length > 0 && (
+                            <section>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                  Journals
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  ({selectedMemberPublications.journals.length})
+                                </span>
+                              </h3>
+                              <div className="space-y-3">
+                                {selectedMemberPublications.journals.map((j) => (
+                                  <div key={j._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                    <p className="font-medium text-gray-900 mb-2">{j.title}</p>
+                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                                      {j.JournalName && <span>{j.JournalName}</span>}
+                                      {j.Year && <span>• {j.Year}</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          )}
+
+                          {/* Conferences */}
+                          {selectedMemberPublications.conferences.length > 0 && (
+                            <section>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                                  Conferences
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  ({selectedMemberPublications.conferences.length})
+                                </span>
+                              </h3>
+                              <div className="space-y-3">
+                                {selectedMemberPublications.conferences.map((c) => (
+                                  <div key={c._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                    <p className="font-medium text-gray-900 mb-2">{c.title}</p>
+                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                                      {c.ConferenceName && <span>{c.ConferenceName}</span>}
+                                      {c.Year && <span>• {c.Year}</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Bottom Close Button for Mobile Only */}
+                  <div className="block md:hidden pt-4">
+                    <button
+                      onClick={closeModal}
+                      className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   if (loading) {
     return (
@@ -359,7 +575,7 @@ const MemberModal = () => {
         {/* Category Filter */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Filter by Category</h2>
-          
+
           <div className="flex flex-wrap gap-3 mb-8">
             {[
               { key: 'all', label: 'All Members', color: 'bg-gray-100 hover:bg-gray-200 text-gray-800' },
@@ -372,11 +588,10 @@ const MemberModal = () => {
               <button
                 key={key}
                 onClick={() => setActiveCategory(key as Category)}
-                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${
-                  activeCategory === key 
-                    ? 'ring-2 ring-offset-2 ring-blue-500' 
-                    : ''
-                } ${color}`}
+                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 ${activeCategory === key
+                  ? 'ring-2 ring-offset-2 ring-blue-500'
+                  : ''
+                  } ${color}`}
               >
                 {label} ({categoryStats[key as keyof typeof categoryStats]})
               </button>
@@ -386,145 +601,130 @@ const MemberModal = () => {
           {/* Active Filter Info */}
           <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <p className="text-gray-700">
-              Showing <span className="font-semibold">{filteredMembers.length}</span> team member(s) 
+              Showing <span className="font-semibold">{filteredMembers.length}</span> team member(s)
               {activeCategory !== 'all' && ` in ${activeCategory.toUpperCase()} category`}
             </p>
           </div>
         </div>
 
         {/* Team Members Grid */}
-         {/* Team Members Grid */}
-{filteredMembers.length === 0 ? (
-  <div className="text-center py-12">
-    <div className="text-gray-400 mb-4">
-      <svg className="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 3.747a4.007 4.007 0 01-4.014 4.014" />
-      </svg>
-    </div>
-    <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members found</h3>
-    <p className="text-gray-600">No team members match the current filter.</p>
-  </div>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-    {filteredMembers.map((member) => {
-      const status = getStatus(member);
-      const category = getMemberCategory(member);
-    const description = member.Description || '';
-const wordCount = description.split(/\s+/).length;
-const shouldTruncate = wordCount > 20; // Reduced from 30 to 20 for better truncation
-const truncatedDescription = shouldTruncate ? truncateText(description, 20) : description;
-      
-      const categoryColors = {
-        phd: 'bg-blue-100 text-blue-800',
-        mtech: 'bg-yellow-100 text-yellow-800',
-        btech: 'bg-red-100 text-red-800',
-      };
-
-      const statusColors = {
-        present: 'bg-green-100 text-green-800',
-        past: 'bg-purple-100 text-purple-800',
-      };
-
-      return (
-        <div
-          key={member._id}
-          onClick={() => openMemberModal(member)}
-          className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group flex flex-col h-full"
-        >
-          {/* Member Image */}
-          <div className="relative h-56 bg-gray-100 overflow-hidden flex-shrink-0">
-            {member.image ? (
-              <Image
-                src={member.image}
-                alt={member.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <svg className="w-20 h-20 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            )}
-            
-            {/* Status Badge */}
-            <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
-              {status === 'present' ? 'Present' : 'Alumni'}
+        {filteredMembers.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 3.747a4.007 4.007 0 01-4.014 4.014" />
+              </svg>
             </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members found</h3>
+            <p className="text-gray-600">No team members match the current filter.</p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredMembers.map((member) => {
+              const status = getStatus(member);
+              const category = getMemberCategory(member);
+              const description = member.Description || '';
+              const wordCount = description.split(/\s+/).length;
+              const shouldTruncate = wordCount > 20;
+              const truncatedDescription = shouldTruncate ? truncateText(description, 20) : description;
 
-          {/* Member Info - This section will grow and push dates to bottom */}
-          <div className="p-5 flex flex-col flex-grow">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                {member.name}
-              </h3>
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 ${categoryColors[category]}`}>
-                {category.toUpperCase()}
-              </span>
-            </div>
-            
-            <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-1">{member.designation}</p>
-            
-            {/* Description with proper truncation */}
-            {description && (
-              <div className="mb-4 flex-grow">
-                <p className="text-gray-600 text-sm mb-2 line-clamp-3">
-                  {truncatedDescription}
-                </p>
-                {shouldTruncate && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openMemberModal(member);
-                    }}
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                  >
-                    Read more
-                  </button>
-                )}
-              </div>
-            )}
+              const categoryColors = {
+                phd: 'bg-blue-100 text-blue-800',
+                mtech: 'bg-yellow-100 text-yellow-800',
+                btech: 'bg-red-100 text-red-800',
+              };
 
-            {/* Dates - This will always be at the bottom */}
-            <div className="space-y-2 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
-              {member.enrolledDate && (
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="truncate">Enrolled: {new Date(member.enrolledDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
+              const statusColors = {
+                present: 'bg-green-100 text-green-800',
+                past: 'bg-purple-100 text-purple-800',
+              };
+
+              return (
+                <div
+                  key={member._id}
+                  onClick={() => openMemberModal(member)}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group flex flex-col h-full"
+                >
+                  {/* Member Image */}
+                  <div className="relative h-56 bg-gray-100 overflow-hidden flex-shrink-0">
+                    {member.image ? (
+                      <Image
+                        src={member.image}
+                        alt={member.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-20 h-20 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    )}
+
+                    {/* Status Badge */}
+                    <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
+                      {status === 'present' ? 'Present' : 'Alumni'}
+                    </div>
+                  </div>
+
+                  {/* Member Info */}
+                  <div className="p-5 flex flex-col flex-grow">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {member.name}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 ${categoryColors[category]}`}>
+                        {category.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-1">{member.designation}</p>
+
+                    {description && (
+                      <div className="mb-4 flex-grow">
+                        <p className="text-gray-600 text-sm mb-2 line-clamp-3">
+                          {truncatedDescription}
+                        </p>
+                        {shouldTruncate && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openMemberModal(member);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                          >
+                            Read more
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-2 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
+                      {member.enrolledDate && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="truncate">Enrolled: {new Date(member.enrolledDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
+                        </div>
+                      )}
+
+                      {member.graduatedDate && (
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="truncate">Graduated: {new Date(member.graduatedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-              
-              {member.graduatedDate && (
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="truncate">Graduated: {new Date(member.graduatedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</span>
-                </div>
-              )}
-            </div>
+              );
+            })}
           </div>
-        </div>
-      );
-    })}
-  </div>
-)}
-        {/* Summary Stats */}
-        {/* <div className="mt-12 pt-8 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Summary</h3>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {Object.entries(categoryStats).map(([key, count]) => (
-              <div key={key} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-                <p className="text-2xl font-bold text-gray-900">{count}</p>
-                <p className="text-sm text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-              </div>
-            ))}
-          </div>
-        </div> */}
+        )}
       </div>
 
       {/* Refresh Button */}

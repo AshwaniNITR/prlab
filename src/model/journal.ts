@@ -36,7 +36,7 @@ const JournalSchema: Schema<Journal> = new Schema({
         type: String
     },
     issue: {
-        tyope: String
+        type: String
     },
     pages: {
         type: String
