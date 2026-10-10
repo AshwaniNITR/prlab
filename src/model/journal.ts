@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface Journal extends Document {
     title: string;
-    authors?: string;
+    authors?: string[];
     journal?: string;
     year?: number;
     volume?: string;

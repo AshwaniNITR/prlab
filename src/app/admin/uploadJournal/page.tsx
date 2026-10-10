@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 interface JournalFormData {
   title: string;
-  author: string[];
+  authors: string[];
   otherAuthorName: string;
   journal: string;
   year: string;
@@ -24,7 +24,7 @@ const JournalForm = () => {
   const [journals, setJournals] = useState<JournalFormData[]>([
     {
       title: '',
-      author: [],
+      authors: [],
       otherAuthorName: '',
       journal: '',
       year: new Date().getFullYear().toString(),
@@ -65,7 +65,7 @@ const JournalForm = () => {
     const updatedJournals = [...journals];
     updatedJournals[index] = {
       ...updatedJournals[index],
-      author: selectedAuthors,
+      authors: selectedAuthors,
       // Reset otherAuthorName if "Others" is not selected
       otherAuthorName: selectedAuthors.includes('Others') ? updatedJournals[index].otherAuthorName : ''
     };
@@ -95,7 +95,7 @@ const JournalForm = () => {
       ...journals,
       {
         title: '',
-        author: [],
+        authors: [],
         otherAuthorName: '',
         journal: '',
         year: new Date().getFullYear().toString(),
@@ -140,11 +140,11 @@ const JournalForm = () => {
       const journalsToSubmit = journals
         .map(journal => ({
           ...journal,
-          author: getAuthorsString(journal.author, journal.otherAuthorName)
+          authors: getAuthorsString(journal.authors, journal.otherAuthorName)
         }))
         .filter(journal => 
           journal.title.trim() && 
-          journal.author.trim() && 
+          journal.authors.trim() && 
           journal.journal.trim() && 
           journal.year.trim()
         );
@@ -181,7 +181,7 @@ const JournalForm = () => {
         // Reset form
         setJournals([{
           title: '',
-          author: [],
+          authors: [],
           otherAuthorName: '',
           journal: '',
           year: new Date().getFullYear().toString(),
@@ -232,7 +232,7 @@ const JournalForm = () => {
 
   const isFormValid = journals.some(journal => 
     journal.title.trim() && 
-    (journal.author.length > 0 || journal.otherAuthorName.trim()) && 
+    (journal.authors.length > 0 || journal.otherAuthorName.trim()) && 
     journal.journal.trim() && 
     journal.year.trim()
   );
@@ -352,7 +352,7 @@ const JournalForm = () => {
                       <div className="space-y-3">
                         <select
                           multiple
-                          value={journal.author}
+                          value={journal.authors}
                           onChange={(e) => {
                             const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
                             handleAuthorChange(index, selectedOptions);
@@ -374,7 +374,7 @@ const JournalForm = () => {
                   </div>
 
                   {/* Other Author Name - shown only when Others is selected */}
-                  {journal.author.includes('Others') && (
+                  {journal.authors.includes('Others') && (
                     <div className="animate-fadeIn">
                       <label className="block text-sm font-semibold text-black mb-2">
                         Other Author Name *
@@ -394,11 +394,11 @@ const JournalForm = () => {
                   )}
 
                   {/* Selected Authors Preview */}
-                  {(journal.author.length > 0 || journal.otherAuthorName) && (
+                  {(journal.authors.length > 0 || journal.otherAuthorName) && (
                     <div className="bg-green-50 rounded-xl p-3">
                       <p className="text-sm font-medium text-black mb-1">Selected Authors:</p>
                       <p className="text-sm text-black">
-                        {getAuthorsString(journal.author, journal.otherAuthorName) || 'None selected'}
+                        {getAuthorsString(journal.authors, journal.otherAuthorName) || 'None selected'}
                       </p>
                     </div>
                   )}
