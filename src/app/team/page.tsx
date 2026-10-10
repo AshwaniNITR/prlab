@@ -23,13 +23,19 @@ interface Publication {
   Inventors?: string;
   FilingDate?: string;
   GrantDate?: string;
-  // Journal / Conference fields (flexible — matched by multiple possible keys)
-  Authors?: string;
-  Author?: string;
+  // Journal fields
   authors?: string;
-  JournalName?: string;
-  ConferenceName?: string;
-  Year?: string;
+  journal?: string;
+  year?: number | string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  type?: string;
+  status?: string;
+  // Conference fields
+  conference?: string;
+  month?: string;
+  location?: string;
   [key: string]: any;
 }
 
@@ -41,7 +47,6 @@ interface PublicationsState {
 
 type Category = 'all' | 'present' | 'past' | 'phd' | 'mtech' | 'btech';
 
-// Truncate text function
 const truncateText = (text: string, wordLimit: number): string => {
   if (!text) return '';
   const words = text.trim().split(/\s+/);
@@ -58,7 +63,6 @@ export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // NEW: publications from masterApi
   const [publications, setPublications] = useState<PublicationsState>({
     journals: [],
     patents: [],
@@ -92,7 +96,6 @@ export default function TeamPage() {
         throw new Error(data.message || 'Failed to fetch team members');
       }
 
-      // NEW: store publications from masterApi
       if (additionalData?.success && additionalData?.data) {
         setPublications({
           journals: additionalData.data.journals || [],
@@ -180,14 +183,12 @@ export default function TeamPage() {
 
   const categoryStats = getCategoryStats();
 
-  // NEW: helper to check if member's name appears in an author string
   const isAuthorMatch = (memberName: string, authorString?: string | null): boolean => {
     if (!authorString || !memberName) return false;
     const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
     return normalize(authorString).includes(normalize(memberName));
   };
 
-  // NEW: publications for the currently selected member
   const selectedMemberPublications = useMemo(() => {
     if (!selectedMember) return { journals: [], patents: [], conferences: [] };
 
@@ -197,15 +198,13 @@ export default function TeamPage() {
       isAuthorMatch(name, p.Inventors)
     );
 
-    const journals = publications.journals.filter(j => {
-      const authorField = j.Authors ?? j.Author ?? j.authors ?? '';
-      return isAuthorMatch(name, authorField);
-    });
+    const journals = publications.journals.filter(j =>
+      isAuthorMatch(name, j.authors)
+    );
 
-    const conferences = publications.conferences.filter(c => {
-      const authorField = c.Authors ?? c.Author ?? c.authors ?? '';
-      return isAuthorMatch(name, authorField);
-    });
+    const conferences = publications.conferences.filter(c =>
+      isAuthorMatch(name, c.authors)
+    );
 
     return { journals, patents, conferences };
   }, [publications, selectedMember]);
@@ -215,11 +214,10 @@ export default function TeamPage() {
     selectedMemberPublications.patents.length +
     selectedMemberPublications.conferences.length;
 
-  // Modal component - Proper sizing for both mobile and desktop
+  // Modal component with flip animation
   const MemberModal = () => {
     if (!selectedMember) return null;
 
-    // NEW: view state inside modal
     const [showPublications, setShowPublications] = useState(false);
 
     const status = getStatus(selectedMember);
@@ -236,67 +234,94 @@ export default function TeamPage() {
       past: 'bg-purple-100 text-purple-800',
     };
 
+    // Minimalist label/value row
+    const DetailRow = ({ label, value }: { label: string; value?: string | number | null }) => {
+      if (value === undefined || value === null || value === '') return null;
+      return (
+        <div className="flex text-sm leading-relaxed">
+          <span className="text-gray-500 w-24 flex-shrink-0">{label}</span>
+          <span className="text-gray-900 break-words">{value}</span>
+        </div>
+      );
+    };
+
     return (
       <div className="fixed inset-0 z-50">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 backdrop-blur-sm bg-opacity-60"
+          className="fixed inset-0 backdrop-blur-sm bg-black/40"
           onClick={closeModal}
         />
 
         {/* Modal Container */}
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]">
-              {/* Close button */}
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
-                aria-label="Close modal"
+            {/* Flip wrapper - perspective for 3D effect */}
+            <div
+              className="relative w-full max-w-4xl md:max-h-[90vh]"
+              style={{ perspective: '2000px' }}
+            >
+              {/* Flip inner container */}
+              <div
+                className="relative w-full transition-transform duration-700"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: showPublications ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                }}
               >
-                <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                {/* FRONT FACE - Profile */}
+                <div
+                  className="bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                  }}
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+                    aria-label="Close modal"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
 
-              {/* Modal Content */}
-              <div className="flex flex-col md:flex-row h-full">
-                {/* Left Column - Image (Fixed Height) */}
-                <div className="w-full md:w-2/5">
-                  <div className="relative h-64 md:h-full">
-                    {selectedMember.image ? (
-                      <Image
-                        src={selectedMember.image}
-                        alt={selectedMember.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 40vw"
-                        priority
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                        <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                  <div className="flex flex-col md:flex-row h-full">
+                    {/* Left Column - Image */}
+                    <div className="w-full md:w-2/5">
+                      <div className="relative h-64 md:h-full">
+                        {selectedMember.image ? (
+                          <Image
+                            src={selectedMember.image}
+                            alt={selectedMember.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 40vw"
+                            priority
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+                          <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
+                            {status === 'present' ? 'Present' : 'Alumni'}
+                          </span>
+                          <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
+                            {category.toUpperCase()}
+                          </span>
+                        </div>
                       </div>
-                    )}
-
-                    <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
-                      <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
-                        {status === 'present' ? 'Present' : 'Alumni'}
-                      </span>
-                      <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
-                        {category.toUpperCase()}
-                      </span>
                     </div>
-                  </div>
-                </div>
 
-                {/* Right Column - Details (Scrollable) */}
-                <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
-                  {!showPublications ? (
-                    <>
-                      {/* --- PROFILE VIEW (unchanged) --- */}
+                    {/* Right Column - Details */}
+                    <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
                       <div className="mb-6">
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                           {selectedMember.name}
@@ -362,7 +387,7 @@ export default function TeamPage() {
                         )}
                       </div>
 
-                      {/* NEW: Publications button */}
+                      {/* Publications button */}
                       <div className="pt-4 border-t border-gray-100">
                         <button
                           onClick={() => setShowPublications(true)}
@@ -374,142 +399,198 @@ export default function TeamPage() {
                           Publications ({totalPublications})
                         </button>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* --- PUBLICATIONS VIEW (NEW) --- */}
-                      <div className="mb-6 flex items-start justify-between gap-4">
-                        <div>
-                          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                            Publications
-                          </h2>
-                          <p className="text-gray-600">{selectedMember.name}</p>
-                        </div>
+
+                      {/* Bottom Close Button for Mobile Only */}
+                      <div className="block md:hidden pt-4">
                         <button
-                          onClick={() => setShowPublications(false)}
-                          className="flex-shrink-0 flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                          onClick={closeModal}
+                          className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                          </svg>
-                          Back to Profile
+                          Close
                         </button>
                       </div>
+                    </div>
+                  </div>
+                </div>
 
-                      {totalPublications === 0 ? (
-                        <div className="text-center py-12">
-                          <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                          </svg>
-                          <p className="text-gray-500 italic">No publications found for this member.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-8">
-                          {/* Patents */}
-                          {selectedMemberPublications.patents.length > 0 && (
-                            <section>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                  Patents
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  ({selectedMemberPublications.patents.length})
-                                </span>
+                {/* BACK FACE - Publications */}
+                <div
+                  className="absolute inset-0 bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+                  style={{
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                  }}
+                >
+                  {/* Close button (back) */}
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+                    aria-label="Close modal"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+
+                  <div className="h-full overflow-y-auto p-6 md:p-8 max-h-[70vh] md:max-h-[90vh]">
+                    {/* Header */}
+                    <div className="mb-6 flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+                          Publications
+                        </h2>
+                        <p className="text-gray-600 text-sm">{selectedMember.name}</p>
+                      </div>
+                      <button
+                        onClick={() => setShowPublications(false)}
+                        className="flex-shrink-0 flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Profile
+                      </button>
+                    </div>
+
+                    {totalPublications === 0 ? (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <p className="text-gray-500 italic">No publications found for this member.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {/* PATENTS */}
+                        {selectedMemberPublications.patents.length > 0 && (
+                          <section>
+                            <div className="flex items-center gap-2 mb-4">
+                              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                                Patents
                               </h3>
-                              <div className="space-y-3">
-                                {selectedMemberPublications.patents.map((p) => (
-                                  <div key={p._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                    <p className="font-medium text-gray-900 mb-2">
-                                      {p.title}
-                                    </p>
-                                    <div className="flex flex-wrap gap-2 text-xs">
-                                      {p.Applno && (
-                                        <span className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
-                                          Appl. No: {p.Applno}
-                                        </span>
-                                      )}
-                                      {p.Status && (
-                                        <span className={`px-2 py-1 rounded ${p.Status.toLowerCase() === 'granted'
-                                          ? 'bg-green-100 text-green-800'
-                                          : 'bg-yellow-100 text-yellow-800'
-                                          }`}>
-                                          {p.Status}
-                                        </span>
-                                      )}
-                                      {p.FilingDate && (
-                                        <span className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
-                                          Filed: {new Date(p.FilingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </section>
-                          )}
+                              <span className="text-xs text-gray-400">
+                                {selectedMemberPublications.patents.length}
+                              </span>
+                              <div className="flex-1 h-px bg-gray-200 ml-2" />
+                            </div>
 
-                          {/* Journals */}
-                          {selectedMemberPublications.journals.length > 0 && (
-                            <section>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                                  Journals
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  ({selectedMemberPublications.journals.length})
-                                </span>
+                            <div className="space-y-4">
+                              {selectedMemberPublications.patents.map((p) => (
+                                <div key={p._id} className="pb-4 border-b border-gray-100 last:border-0">
+                                  <p className="font-medium text-gray-900 mb-2">{p.title}</p>
+                                  <div className="space-y-1">
+                                    <DetailRow label="Application" value={p.Applno} />
+                                    <DetailRow label="Status" value={p.Status} />
+                                    <DetailRow
+                                      label="Filed"
+                                      value={
+                                        p.FilingDate
+                                          ? new Date(p.FilingDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                          })
+                                          : undefined
+                                      }
+                                    />
+                                    <DetailRow
+                                      label="Granted"
+                                      value={
+                                        p.GrantDate
+                                          ? new Date(p.GrantDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                          })
+                                          : undefined
+                                      }
+                                    />
+                                    <DetailRow label="Inventors" value={p.Inventors} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+                        )}
+
+                        {/* JOURNALS */}
+                        {selectedMemberPublications.journals.length > 0 && (
+                          <section>
+                            <div className="flex items-center gap-2 mb-4">
+                              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                                Journals
                               </h3>
-                              <div className="space-y-3">
-                                {selectedMemberPublications.journals.map((j) => (
-                                  <div key={j._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                    <p className="font-medium text-gray-900 mb-2">{j.title}</p>
-                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                                      {j.JournalName && <span>{j.JournalName}</span>}
-                                      {j.Year && <span>• {j.Year}</span>}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </section>
-                          )}
+                              <span className="text-xs text-gray-400">
+                                {selectedMemberPublications.journals.length}
+                              </span>
+                              <div className="flex-1 h-px bg-gray-200 ml-2" />
+                            </div>
 
-                          {/* Conferences */}
-                          {selectedMemberPublications.conferences.length > 0 && (
-                            <section>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
-                                  Conferences
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  ({selectedMemberPublications.conferences.length})
-                                </span>
+                            <div className="space-y-4">
+                              {selectedMemberPublications.journals.map((j) => (
+                                <div key={j._id} className="pb-4 border-b border-gray-100 last:border-0">
+                                  <p className="font-medium text-gray-900 mb-2">{j.title}</p>
+                                  <div className="space-y-1">
+                                    <DetailRow label="Journal" value={j.journal} />
+                                    <DetailRow label="Year" value={j.year} />
+                                    <DetailRow label="Volume" value={j.volume} />
+                                    <DetailRow label="Issue" value={j.issue} />
+                                    <DetailRow label="Pages" value={j.pages} />
+                                    <DetailRow label="Type" value={j.type} />
+                                    <DetailRow label="Status" value={j.status} />
+                                    <DetailRow label="Authors" value={j.authors} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+                        )}
+
+                        {/* CONFERENCES */}
+                        {selectedMemberPublications.conferences.length > 0 && (
+                          <section>
+                            <div className="flex items-center gap-2 mb-4">
+                              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                                Conferences
                               </h3>
-                              <div className="space-y-3">
-                                {selectedMemberPublications.conferences.map((c) => (
-                                  <div key={c._id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                    <p className="font-medium text-gray-900 mb-2">{c.title}</p>
-                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                                      {c.ConferenceName && <span>{c.ConferenceName}</span>}
-                                      {c.Year && <span>• {c.Year}</span>}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </section>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
+                              <span className="text-xs text-gray-400">
+                                {selectedMemberPublications.conferences.length}
+                              </span>
+                              <div className="flex-1 h-px bg-gray-200 ml-2" />
+                            </div>
 
-                  {/* Bottom Close Button for Mobile Only */}
-                  <div className="block md:hidden pt-4">
-                    <button
-                      onClick={closeModal}
-                      className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-                    >
-                      Close
-                    </button>
+                            <div className="space-y-4">
+                              {selectedMemberPublications.conferences.map((c) => (
+                                <div key={c._id} className="pb-4 border-b border-gray-100 last:border-0">
+                                  <p className="font-medium text-gray-900 mb-2">{c.title}</p>
+                                  <div className="space-y-1">
+                                    <DetailRow label="Conference" value={c.conference} />
+                                    <DetailRow label="Year" value={c.year} />
+                                    <DetailRow label="Month" value={c.month} />
+                                    <DetailRow label="Location" value={c.location} />
+                                    <DetailRow label="Pages" value={c.pages} />
+                                    <DetailRow label="Type" value={c.type} />
+                                    <DetailRow label="Status" value={c.status} />
+                                    <DetailRow label="Authors" value={c.authors} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Bottom Close Button for Mobile Only */}
+                    <div className="block md:hidden pt-6">
+                      <button
+                        onClick={closeModal}
+                        className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -598,7 +679,6 @@ export default function TeamPage() {
             ))}
           </div>
 
-          {/* Active Filter Info */}
           <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
             <p className="text-gray-700">
               Showing <span className="font-semibold">{filteredMembers.length}</span> team member(s)
@@ -645,7 +725,6 @@ export default function TeamPage() {
                   onClick={() => openMemberModal(member)}
                   className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group flex flex-col h-full"
                 >
-                  {/* Member Image */}
                   <div className="relative h-56 bg-gray-100 overflow-hidden flex-shrink-0">
                     {member.image ? (
                       <Image
@@ -662,13 +741,11 @@ export default function TeamPage() {
                       </div>
                     )}
 
-                    {/* Status Badge */}
                     <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
                       {status === 'present' ? 'Present' : 'Alumni'}
                     </div>
                   </div>
 
-                  {/* Member Info */}
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
