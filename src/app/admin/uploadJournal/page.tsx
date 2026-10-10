@@ -393,7 +393,7 @@ const JournalForm = () => {
                     </div>
                   )}
 
-                  {/* Selected Authors Preview */}
+                  {/* Selected Authors Peview */}
                   {(journal.authors.length > 0 || journal.otherAuthorName) && (
                     <div className="bg-green-50 rounded-xl p-3">
                       <p className="text-sm font-medium text-black mb-1">Selected Authors:</p>
