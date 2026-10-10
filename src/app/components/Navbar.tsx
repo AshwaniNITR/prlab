@@ -239,7 +239,7 @@ export default function Navbar() {
       <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
         <div className="flex justify-between items-center h-16 px-4">
           {/* Logo */}
-          <Link href="/admin/dashboard">
+          <Link href="/">
             <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
           </Link>
 
@@ -313,7 +313,7 @@ export default function Navbar() {
           }`}
         >
           {/* Logo */}
-          <Link href="/admin">
+          <Link href="/">
             <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
           </Link>
           
