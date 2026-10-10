@@ -238,7 +238,7 @@ export default function Navbar() {
       {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
       <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
         <div className="flex justify-between items-center h-16 px-4">
-          {/* Logo */}
+          {/* Logo  prev:- /admin/dashboard  */}
           <Link href="/">
             <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
           </Link>
@@ -312,7 +312,7 @@ export default function Navbar() {
               : "bg-white/10 backdrop-blur-lg border-r border-blue-400 shadow-xl"
           }`}
         >
-          {/* Logo */}
+          {/* Logo  prev:- /admin  */}
           <Link href="/">
             <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
           </Link>
