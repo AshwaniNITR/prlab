@@ -126,7 +126,7 @@ export default function Navbar() {
         { name: "Book Chapter", href: "/publications/bookchapter" },
       ]
     },
-    { name: "Courses", href: "#courses" },
+    { name: "Courses", href: "/courses" },
     { name: "Events", href: "/events" },
     { name: "Contact Us", href: "#contact" },
     { name: "Gallery", href: "/gallery" },
