@@ -129,7 +129,7 @@ export default function Navbar() {
     { name: "Courses", href: "#courses" },
     { name: "Events", href: "/events" },
     { name: "Contact Us", href: "#contact" },
-    { name: "Gallery", href: "#gallery" },
+    { name: "Gallery", href: "/gallery" },
   ];
 
   const handleMenuItemClick = (item: MenuItem) => {
