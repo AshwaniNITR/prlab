@@ -640,7 +640,7 @@ export default function TeamPage() {
         />
 
         {/* Modal Container */}
-        <div className="fixed inset-0 overflow-y-auto overscroll-contain">
+        <div className="fixed inset-0 overflow-y-auto overscroll-contain pt-20">
           <div className="flex min-h-full items-start md:items-center justify-center p-4">
             {/* Flip wrapper - perspective for 3D effect */}
             <div
