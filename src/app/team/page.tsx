@@ -215,6 +215,392 @@ export default function TeamPage() {
     selectedMemberPublications.conferences.length;
 
   // Modal component with flip animation
+  // const MemberModal = () => {
+  //   if (!selectedMember) return null;
+
+  //   const [showPublications, setShowPublications] = useState(false);
+
+  //   const status = getStatus(selectedMember);
+  //   const category = getMemberCategory(selectedMember);
+
+  //   const categoryColors = {
+  //     phd: 'bg-blue-100 text-blue-800',
+  //     mtech: 'bg-yellow-100 text-yellow-800',
+  //     btech: 'bg-red-100 text-red-800',
+  //   };
+
+  //   const statusColors = {
+  //     present: 'bg-green-100 text-green-800',
+  //     past: 'bg-purple-100 text-purple-800',
+  //   };
+
+  //   // Minimalist label/value row
+  //   const DetailRow = ({ label, value }: { label: string; value?: string | number | null }) => {
+  //     if (value === undefined || value === null || value === '') return null;
+  //     return (
+  //       <div className="flex text-sm leading-relaxed">
+  //         <span className="text-gray-500 w-24 flex-shrink-0">{label}</span>
+  //         <span className="text-gray-900 break-words">{value}</span>
+  //       </div>
+  //     );
+  //   };
+
+  //   return (
+  //     <div className="fixed inset-0 z-50">
+  //       {/* Backdrop */}
+  //       <div
+  //         className="fixed inset-0 backdrop-blur-sm bg-black/40"
+  //         onClick={closeModal}
+  //       />
+
+  //       {/* Modal Container */}
+  //       <div className="fixed inset-0 overflow-y-auto">
+  //         <div className="flex min-h-full items-center justify-center p-4">
+  //           {/* Flip wrapper - perspective for 3D effect */}
+  //           <div
+  //             className="relative w-full max-w-4xl md:max-h-[90vh]"
+  //             style={{ perspective: '2000px' }}
+  //           >
+  //             {/* Flip inner container */}
+  //             <div
+  //               className="relative w-full transition-transform duration-700"
+  //               style={{
+  //                 transformStyle: 'preserve-3d',
+  //                 transform: showPublications ? 'rotateY(180deg)' : 'rotateY(0deg)',
+  //               }}
+  //             >
+  //               {/* FRONT FACE - Profile */}
+  //               <div
+  //                 className="bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+  //                 style={{
+  //                   backfaceVisibility: 'hidden',
+  //                   WebkitBackfaceVisibility: 'hidden',
+  //                 }}
+  //               >
+  //                 {/* Close button */}
+  //                 <button
+  //                   onClick={closeModal}
+  //                   className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+  //                   aria-label="Close modal"
+  //                 >
+  //                   <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  //                   </svg>
+  //                 </button>
+
+  //                 <div className="flex flex-col md:flex-row h-full">
+  //                   {/* Left Column - Image */}
+  //                   <div className="w-full md:w-2/5">
+  //                     <div className="relative h-64 md:h-full">
+  //                       {selectedMember.image ? (
+  //                         <Image
+  //                           src={selectedMember.image}
+  //                           alt={selectedMember.name}
+  //                           fill
+  //                           className="object-cover"
+  //                           sizes="(max-width: 768px) 100vw, 40vw"
+  //                           priority
+  //                         />
+  //                       ) : (
+  //                         <div className="w-full h-full flex items-center justify-center bg-gray-100">
+  //                           <svg className="w-24 h-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  //                           </svg>
+  //                         </div>
+  //                       )}
+
+  //                       <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+  //                         <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusColors[status]}`}>
+  //                           {status === 'present' ? 'Present' : 'Alumni'}
+  //                         </span>
+  //                         <span className={`px-3 py-1.5 rounded-full text-sm font-semibold ${categoryColors[category]}`}>
+  //                           {category.toUpperCase()}
+  //                         </span>
+  //                       </div>
+  //                     </div>
+  //                   </div>
+
+  //                   {/* Right Column - Details */}
+  //                   <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
+  //                     <div className="mb-6">
+  //                       <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+  //                         {selectedMember.name}
+  //                       </h2>
+  //                       <p className="text-lg md:text-xl text-gray-700 font-medium">
+  //                         {selectedMember.designation}
+  //                       </p>
+  //                     </div>
+
+  //                     <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+  //                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Timeline</h3>
+  //                       <div className="space-y-3">
+  //                         {selectedMember.enrolledDate && (
+  //                           <div className="flex items-center">
+  //                             <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+  //                               <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  //                               </svg>
+  //                             </div>
+  //                             <div>
+  //                               <p className="text-sm text-gray-600">Enrolled Date</p>
+  //                               <p className="font-medium text-gray-900">
+  //                                 {new Date(selectedMember.enrolledDate).toLocaleDateString('en-US', {
+  //                                   year: 'numeric',
+  //                                   month: 'short',
+  //                                   day: 'numeric'
+  //                                 })}
+  //                               </p>
+  //                             </div>
+  //                           </div>
+  //                         )}
+
+  //                         {selectedMember.graduatedDate && (
+  //                           <div className="flex items-center">
+  //                             <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+  //                               <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  //                               </svg>
+  //                             </div>
+  //                             <div>
+  //                               <p className="text-sm text-gray-600">Graduated Date</p>
+  //                               <p className="font-medium text-gray-900">
+  //                                 {new Date(selectedMember.graduatedDate).toLocaleDateString('en-US', {
+  //                                   year: 'numeric',
+  //                                   month: 'short',
+  //                                   day: 'numeric'
+  //                                 })}
+  //                               </p>
+  //                             </div>
+  //                           </div>
+  //                         )}
+  //                       </div>
+  //                     </div>
+
+  //                     <div className="pb-4">
+  //                       <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
+  //                       {selectedMember.Description ? (
+  //                         <div className="text-gray-700 leading-relaxed whitespace-pre-line max-h-[300px] overflow-y-auto pr-2">
+  //                           {selectedMember.Description}
+  //                         </div>
+  //                       ) : (
+  //                         <p className="text-gray-500 italic">No description provided.</p>
+  //                       )}
+  //                     </div>
+
+  //                     {/* Publications button */}
+  //                     <div className="pt-4 border-t border-gray-100">
+  //                       <button
+  //                         onClick={() => setShowPublications(true)}
+  //                         className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+  //                       >
+  //                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  //                         </svg>
+  //                         Publications ({totalPublications})
+  //                       </button>
+  //                     </div>
+
+  //                     {/* Bottom Close Button for Mobile Only */}
+  //                     <div className="block md:hidden pt-4">
+  //                       <button
+  //                         onClick={closeModal}
+  //                         className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+  //                       >
+  //                         Close
+  //                       </button>
+  //                     </div>
+  //                   </div>
+  //                 </div>
+  //               </div>
+
+  //               {/* BACK FACE - Publications */}
+  //               <div
+  //                 className="absolute inset-0 bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+  //                 style={{
+  //                   backfaceVisibility: 'hidden',
+  //                   WebkitBackfaceVisibility: 'hidden',
+  //                   transform: 'rotateY(180deg)',
+  //                 }}
+  //               >
+  //                 {/* Close button (back) */}
+  //                 <button
+  //                   onClick={closeModal}
+  //                   className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white bg-opacity-90 hover:bg-gray-100 transition-colors shadow-lg"
+  //                   aria-label="Close modal"
+  //                 >
+  //                   <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  //                   </svg>
+  //                 </button>
+
+  //                 <div className="h-full overflow-y-auto p-6 md:p-8 max-h-[70vh] md:max-h-[90vh]">
+  //                   {/* Header */}
+  //                   <div className="mb-6 flex items-start justify-between gap-4">
+  //                     <div>
+  //                       <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+  //                         Publications
+  //                       </h2>
+  //                       <p className="text-gray-600 text-sm">{selectedMember.name}</p>
+  //                     </div>
+  //                     <button
+  //                       onClick={() => setShowPublications(false)}
+  //                       className="flex-shrink-0 flex items-center gap-1 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+  //                     >
+  //                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+  //                       </svg>
+  //                       Back to Profile
+  //                     </button>
+  //                   </div>
+
+  //                   {totalPublications === 0 ? (
+  //                     <div className="text-center py-12">
+  //                       <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  //                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  //                       </svg>
+  //                       <p className="text-gray-500 italic">No publications found for this member.</p>
+  //                     </div>
+  //                   ) : (
+  //                     <div className="space-y-8">
+  //                       {/* PATENTS */}
+  //                       {selectedMemberPublications.patents.length > 0 && (
+  //                         <section>
+  //                           <div className="flex items-center gap-2 mb-4">
+  //                             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+  //                               Patents
+  //                             </h3>
+  //                             <span className="text-xs text-gray-400">
+  //                               {selectedMemberPublications.patents.length}
+  //                             </span>
+  //                             <div className="flex-1 h-px bg-gray-200 ml-2" />
+  //                           </div>
+
+  //                           <div className="space-y-4">
+  //                             {selectedMemberPublications.patents.map((p) => (
+  //                               <div key={p._id} className="pb-4 border-b border-gray-100 last:border-0">
+  //                                 <p className="font-medium text-gray-900 mb-2">{p.title}</p>
+  //                                 <div className="space-y-1">
+  //                                   <DetailRow label="Application" value={p.Applno} />
+  //                                   <DetailRow label="Status" value={p.Status} />
+  //                                   <DetailRow
+  //                                     label="Filed"
+  //                                     value={
+  //                                       p.FilingDate
+  //                                         ? new Date(p.FilingDate).toLocaleDateString('en-US', {
+  //                                           year: 'numeric',
+  //                                           month: 'short',
+  //                                           day: 'numeric',
+  //                                         })
+  //                                         : undefined
+  //                                     }
+  //                                   />
+  //                                   <DetailRow
+  //                                     label="Granted"
+  //                                     value={
+  //                                       p.GrantDate
+  //                                         ? new Date(p.GrantDate).toLocaleDateString('en-US', {
+  //                                           year: 'numeric',
+  //                                           month: 'short',
+  //                                           day: 'numeric',
+  //                                         })
+  //                                         : undefined
+  //                                     }
+  //                                   />
+  //                                   <DetailRow label="Inventors" value={p.Inventors} />
+  //                                 </div>
+  //                               </div>
+  //                             ))}
+  //                           </div>
+  //                         </section>
+  //                       )}
+
+  //                       {/* JOURNALS */}
+  //                       {selectedMemberPublications.journals.length > 0 && (
+  //                         <section>
+  //                           <div className="flex items-center gap-2 mb-4">
+  //                             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+  //                               Journals
+  //                             </h3>
+  //                             <span className="text-xs text-gray-400">
+  //                               {selectedMemberPublications.journals.length}
+  //                             </span>
+  //                             <div className="flex-1 h-px bg-gray-200 ml-2" />
+  //                           </div>
+
+  //                           <div className="space-y-4">
+  //                             {selectedMemberPublications.journals.map((j) => (
+  //                               <div key={j._id} className="pb-4 border-b border-gray-100 last:border-0">
+  //                                 <p className="font-medium text-gray-900 mb-2">{j.title}</p>
+  //                                 <div className="space-y-1">
+  //                                   <DetailRow label="Journal" value={j.journal} />
+  //                                   <DetailRow label="Year" value={j.year} />
+  //                                   <DetailRow label="Volume" value={j.volume} />
+  //                                   <DetailRow label="Issue" value={j.issue} />
+  //                                   <DetailRow label="Pages" value={j.pages} />
+  //                                   <DetailRow label="Type" value={j.type} />
+  //                                   <DetailRow label="Status" value={j.status} />
+  //                                   <DetailRow label="Authors" value={j.authors} />
+  //                                 </div>
+  //                               </div>
+  //                             ))}
+  //                           </div>
+  //                         </section>
+  //                       )}
+
+  //                       {/* CONFERENCES */}
+  //                       {selectedMemberPublications.conferences.length > 0 && (
+  //                         <section>
+  //                           <div className="flex items-center gap-2 mb-4">
+  //                             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+  //                               Conferences
+  //                             </h3>
+  //                             <span className="text-xs text-gray-400">
+  //                               {selectedMemberPublications.conferences.length}
+  //                             </span>
+  //                             <div className="flex-1 h-px bg-gray-200 ml-2" />
+  //                           </div>
+
+  //                           <div className="space-y-4">
+  //                             {selectedMemberPublications.conferences.map((c) => (
+  //                               <div key={c._id} className="pb-4 border-b border-gray-100 last:border-0">
+  //                                 <p className="font-medium text-gray-900 mb-2">{c.title}</p>
+  //                                 <div className="space-y-1">
+  //                                   <DetailRow label="Conference" value={c.conference} />
+  //                                   <DetailRow label="Year" value={c.year} />
+  //                                   <DetailRow label="Month" value={c.month} />
+  //                                   <DetailRow label="Location" value={c.location} />
+  //                                   <DetailRow label="Pages" value={c.pages} />
+  //                                   <DetailRow label="Type" value={c.type} />
+  //                                   <DetailRow label="Status" value={c.status} />
+  //                                   <DetailRow label="Authors" value={c.authors} />
+  //                                 </div>
+  //                               </div>
+  //                             ))}
+  //                           </div>
+  //                         </section>
+  //                       )}
+  //                     </div>
+  //                   )}
+
+  //                   {/* Bottom Close Button for Mobile Only */}
+  //                   <div className="block md:hidden pt-6">
+  //                     <button
+  //                       onClick={closeModal}
+  //                       className="w-full py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+  //                     >
+  //                       Close
+  //                     </button>
+  //                   </div>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+    // Modal component with flip animation
   const MemberModal = () => {
     if (!selectedMember) return null;
 
@@ -254,11 +640,11 @@ export default function TeamPage() {
         />
 
         {/* Modal Container */}
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto overscroll-contain">
+          <div className="flex min-h-full items-start md:items-center justify-center p-4">
             {/* Flip wrapper - perspective for 3D effect */}
             <div
-              className="relative w-full max-w-4xl md:max-h-[90vh]"
+              className="relative w-full max-w-4xl"
               style={{ perspective: '2000px' }}
             >
               {/* Flip inner container */}
@@ -271,7 +657,7 @@ export default function TeamPage() {
               >
                 {/* FRONT FACE - Profile */}
                 <div
-                  className="bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+                  className="bg-white w-full rounded-2xl shadow-2xl overflow-hidden"
                   style={{
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -288,10 +674,10 @@ export default function TeamPage() {
                     </svg>
                   </button>
 
-                  <div className="flex flex-col md:flex-row h-full">
+                  <div className="flex flex-col md:flex-row">
                     {/* Left Column - Image */}
                     <div className="w-full md:w-2/5">
-                      <div className="relative h-64 md:h-full">
+                      <div className="relative h-64 md:h-full md:min-h-[500px]">
                         {selectedMember.image ? (
                           <Image
                             src={selectedMember.image}
@@ -321,7 +707,7 @@ export default function TeamPage() {
                     </div>
 
                     {/* Right Column - Details */}
-                    <div className="w-full md:w-3/5 p-6 md:p-8 overflow-y-auto max-h-[50vh] md:max-h-[80vh]">
+                    <div className="w-full md:w-3/5 p-6 md:p-8 md:max-h-[80vh] md:overflow-y-auto">
                       <div className="mb-6">
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                           {selectedMember.name}
@@ -379,7 +765,7 @@ export default function TeamPage() {
                       <div className="pb-4">
                         <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
                         {selectedMember.Description ? (
-                          <div className="text-gray-700 leading-relaxed whitespace-pre-line max-h-[300px] overflow-y-auto pr-2">
+                          <div className="text-gray-700 leading-relaxed whitespace-pre-line">
                             {selectedMember.Description}
                           </div>
                         ) : (
@@ -415,7 +801,7 @@ export default function TeamPage() {
 
                 {/* BACK FACE - Publications */}
                 <div
-                  className="absolute inset-0 bg-white w-full rounded-2xl shadow-2xl overflow-hidden md:max-h-[90vh]"
+                  className="absolute inset-0 bg-white w-full rounded-2xl shadow-2xl overflow-hidden"
                   style={{
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -433,7 +819,7 @@ export default function TeamPage() {
                     </svg>
                   </button>
 
-                  <div className="h-full overflow-y-auto p-6 md:p-8 max-h-[70vh] md:max-h-[90vh]">
+                  <div className="h-full overflow-y-auto p-6 md:p-8 md:max-h-[90vh] overscroll-contain">
                     {/* Header */}
                     <div className="mb-6 flex items-start justify-between gap-4">
                       <div>
