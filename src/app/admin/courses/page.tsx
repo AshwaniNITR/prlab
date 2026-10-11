@@ -223,14 +223,14 @@ export default function AdminCoursesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-8 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                 Admin · Courses
               </h1>
-              <p className="mt-2 text-blue-100">
+              <p className="mt-2 text-sm sm:text-base text-blue-100">
                 Add, edit, and manage courses for the public courses page.
               </p>
             </div>
@@ -254,17 +254,17 @@ export default function AdminCoursesPage() {
 
       {/* Toast */}
       {successMsg && (
-        <div className="fixed top-20 right-4 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="fixed top-20 right-4 left-4 sm:left-auto z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-sm sm:max-w-md ml-auto">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          {successMsg}
+          <span className="text-sm">{successMsg}</span>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard label="Total Courses" value={stats.total} color="blue" />
           <StatCard label="Theory" value={stats.theory} color="indigo" />
           <StatCard label="Practical" value={stats.practical} color="purple" />
@@ -272,8 +272,8 @@ export default function AdminCoursesPage() {
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start justify-between">
-            <div className="flex items-start gap-2">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2 min-w-0">
               <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -282,18 +282,21 @@ export default function AdminCoursesPage() {
                   d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-2.99l-6.93-12.02a2 2 0 00-3.48 0L2.33 16.01A2 2 0 004.07 19z"
                 />
               </svg>
-              <span>{error}</span>
+              <span className="text-sm break-words">{error}</span>
             </div>
-            <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700">
+            <button
+              onClick={() => setError(null)}
+              className="text-red-500 hover:text-red-700 flex-shrink-0"
+            >
               ✕
             </button>
           </div>
         )}
 
         {/* Add forms */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Single add */}
-          <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -353,7 +356,7 @@ export default function AdminCoursesPage() {
 
           {/* Bulk add */}
           {showBulk && (
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
               <h2 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
                 <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -429,7 +432,7 @@ export default function AdminCoursesPage() {
               </button>
             ))}
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-64">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
               fill="none"
@@ -448,7 +451,7 @@ export default function AdminCoursesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search courses..."
-              className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full sm:w-64"
+              className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-full text-black"
             />
           </div>
         </div>
@@ -474,127 +477,246 @@ export default function AdminCoursesPage() {
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <p className="text-gray-500 italic">
+            <p className="text-gray-500 italic px-4">
               {courses.length === 0 ? 'No courses yet. Add one above.' : 'No courses match the filter.'}
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-16">
-                    #
-                  </th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                    Name
-                  </th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-32">
-                    Type
-                  </th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-48">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((course, i) => {
-                  const isEditing = editingId === course._id;
-                  return (
-                    <tr key={course._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3 text-sm text-gray-500">{i + 1}</td>
-                      <td className="px-5 py-3">
-                        {isEditing ? (
+          <>
+            {/* ── DESKTOP TABLE (md and up) ───────────────── */}
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-16">
+                      #
+                    </th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      Name
+                    </th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-32">
+                      Type
+                    </th>
+                    <th className="text-right px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide w-48">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map((course, i) => {
+                    const isEditing = editingId === course._id;
+                    return (
+                      <tr key={course._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-5 py-3 text-sm text-gray-500">{i + 1}</td>
+                        <td className="px-5 py-3">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                              autoFocus
+                            />
+                          ) : (
+                            <span className="text-sm text-gray-900">{course.name}</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3">
+                          {isEditing ? (
+                            <select
+                              value={editType}
+                              onChange={(e) => setEditType(e.target.value as 'Theory' | 'Practical')}
+                              className="w-full px-2 py-1.5 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                            >
+                              <option value="Theory">Theory</option>
+                              <option value="Practical">Practical</option>
+                            </select>
+                          ) : (
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                course.type === 'Theory'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                              }`}
+                            >
+                              {course.type}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          {isEditing ? (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => saveEdit(course._id)}
+                                disabled={savingEdit || !editName.trim()}
+                                className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                              >
+                                {savingEdit ? 'Saving...' : 'Save'}
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="px-3 py-1.5 bg-gray-200 text-gray-800 text-xs font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => startEdit(course)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(course)}
+                                disabled={deletingId === course._id}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                title="Delete"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── MOBILE CARDS (below md) ─────────────────── */}
+            <div className="md:hidden space-y-3">
+              {filtered.map((course, i) => {
+                const isEditing = editingId === course._id;
+                return (
+                  <div
+                    key={course._id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
+                  >
+                    {/* Header row: index + type badge */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-xs text-gray-400 font-medium">
+                        #{i + 1}
+                      </span>
+                      {!isEditing && (
+                        <span
+                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            course.type === 'Theory'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-purple-100 text-purple-800'
+                          }`}
+                        >
+                          {course.type}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Name / edit form */}
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Name
+                          </label>
                           <input
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="w-full px-3 py-1.5 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
                             autoFocus
                           />
-                        ) : (
-                          <span className="text-sm text-gray-900">{course.name}</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        {isEditing ? (
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Type
+                          </label>
                           <select
                             value={editType}
-                            onChange={(e) => setEditType(e.target.value as 'Theory' | 'Practical')}
-                            className="w-full px-2 py-1.5 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            onChange={(e) =>
+                              setEditType(e.target.value as 'Theory' | 'Practical')
+                            }
+                            className="w-full px-3 py-2 border border-blue-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
                           >
                             <option value="Theory">Theory</option>
                             <option value="Practical">Practical</option>
                           </select>
-                        ) : (
-                          <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              course.type === 'Theory'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-purple-100 text-purple-800'
-                            }`}
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={() => saveEdit(course._id)}
+                            disabled={savingEdit || !editName.trim()}
+                            className="flex-1 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                           >
-                            {course.type}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3 text-right">
-                        {isEditing ? (
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => saveEdit(course._id)}
-                              disabled={savingEdit || !editName.trim()}
-                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                            >
-                              {savingEdit ? 'Saving...' : 'Save'}
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              className="px-3 py-1.5 bg-gray-200 text-gray-800 text-xs font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => startEdit(course)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => setConfirmDelete(course)}
-                              disabled={deletingId === course._id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                              title="Delete"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            {savingEdit ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="flex-1 py-2 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-gray-900 mb-3 break-words">
+                          {course.name}
+                        </p>
+                        <div className="flex gap-2 pt-3 border-t border-gray-100">
+                          <button
+                            onClick={() => startEdit(course)}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(course)}
+                            disabled={deletingId === course._id}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -606,7 +728,7 @@ export default function AdminCoursesPage() {
             onClick={() => setConfirmDelete(null)}
           />
           <div className="fixed inset-0 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-6">
               <div className="flex items-start gap-3 mb-4">
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                   <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -618,15 +740,15 @@ export default function AdminCoursesPage() {
                     />
                   </svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-lg font-semibold text-gray-900">Delete course?</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-1 break-words">
                     Are you sure you want to delete <strong>"{confirmDelete.name}"</strong>? This action
                     cannot be undone.
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3 justify-end">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 sm:justify-end">
                 <button
                   onClick={() => setConfirmDelete(null)}
                   className="px-4 py-2 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-gray-200 transition-colors text-sm"
@@ -667,11 +789,11 @@ function StatCard({
     purple: 'from-purple-500 to-purple-600',
   };
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
       <div
-        className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center flex-shrink-0`}
+        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center flex-shrink-0`}
       >
-        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -680,9 +802,9 @@ function StatCard({
           />
         </svg>
       </div>
-      <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <div className="min-w-0">
+        <p className="text-xs sm:text-sm text-gray-500 truncate">{label}</p>
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
       </div>
     </div>
   );
