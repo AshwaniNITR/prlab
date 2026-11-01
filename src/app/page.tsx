@@ -12,9 +12,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-100 via-white to-blue-100">
      
       <Hero/>
-      <About/>
+      {/* <About/> */}
       {/* <Footer/> */}
-      <Profile/>
+      {/* <Profile/> */}
     </div>
   );
 }
