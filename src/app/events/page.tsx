@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Calendar, Clock, MapPin } from "lucide-react";
+//import EventSlider from "../components/Slider";
+//import Background from "../components/Background";
 
 interface EventItem {
   _id: string;
@@ -38,15 +40,16 @@ export default function EventsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 pt-28">
+    <div className="min-h-screen bg-gradient-to-br  py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 pt-28">
+      
       <div className="max-w-7xl mx-auto relative">
         
         {/* Animated background elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
-        </div>
-
+        </div> */}
+       
         {/* Header */}
         <div className="text-center mb-16 sm:mb-24 relative z-10">
           
