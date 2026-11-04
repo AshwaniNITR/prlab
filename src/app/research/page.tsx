@@ -36,7 +36,7 @@ export default function ResearchPage() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 ">
+    <div className=" ">
       <div className=" mx-auto relative">
         
         {/* Animated background elements */}
