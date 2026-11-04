@@ -347,7 +347,7 @@ const About: React.FC = () => {
   }
 
   return (
-    <section id="about" className="py-16 bg-gray-50">
+    <section id="about" className="py-16">
       <div className="container mx-auto px-4 max-w-6xl">
         <h2 className="text-4xl font-bold text-center mb-12 text-blue-800">About Our Research Lab</h2>
 

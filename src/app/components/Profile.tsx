@@ -86,8 +86,8 @@ const Profile: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-slate-50 min-h-screen flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white rounded-xl shadow-md w-full max-w-5xl overflow-hidden border border-slate-200 flex flex-col lg:flex-row">
+    <div className=" min-h-screen flex items-center justify-center p-4 sm:p-6">
+      <div className=" rounded-xl shadow-md w-full max-w-5xl overflow-hidden border border-slate-200 flex flex-col lg:flex-row">
         {/* LEFT COLUMN - Profile Sidebar */}
         <div className="w-full lg:w-72 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50 px-6 py-8 flex flex-col items-center">
           {/* Profile Image */}
