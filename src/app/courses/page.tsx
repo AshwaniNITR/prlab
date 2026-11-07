@@ -32,12 +32,69 @@ export default function CoursesPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex flex-col items-center gap-5">
+        {/* Rotating reticle */}
+        <div className="relative h-14 w-14">
+          <style>{`
+            @keyframes iplSpin { to { transform: rotate(360deg); } }
+            @keyframes iplSpinRev { to { transform: rotate(-360deg); } }
+            @keyframes iplBlink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: .25; } }
+            .ipl-spin { animation: iplSpin 1.4s linear infinite; transform-origin: center; }
+            .ipl-spin-rev { animation: iplSpinRev 2.8s linear infinite; transform-origin: center; }
+            .ipl-blink { animation: iplBlink 1.4s steps(1) infinite; }
+            @media (prefers-reduced-motion: reduce) {
+              .ipl-spin, .ipl-spin-rev, .ipl-blink { animation: none !important; }
+            }
+          `}</style>
+
+          {/* Outer ring with a single gap — the moving "sweep" */}
+          <svg viewBox="0 0 56 56" className="ipl-spin absolute inset-0 h-full w-full">
+            <circle
+              cx="28" cy="28" r="25"
+              fill="none"
+              stroke="#0a1020"
+              strokeOpacity="0.18"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="28" cy="28" r="25"
+              fill="none"
+              stroke="#facc15"
+              strokeWidth="2"
+              strokeDasharray="40 117"
+              strokeLinecap="butt"
+            />
+          </svg>
+
+          {/* Inner tick ring, counter-rotating */}
+          <svg viewBox="0 0 56 56" className="ipl-spin-rev absolute inset-0 h-full w-full">
+            <circle
+              cx="28" cy="28" r="18"
+              fill="none"
+              stroke="#0a1020"
+              strokeOpacity="0.2"
+              strokeWidth="1"
+              strokeDasharray="2 6"
+            />
+          </svg>
+
+          {/* Center dot */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="h-1.5 w-1.5 bg-[#0a1020]/40" />
+          </div>
+        </div>
+
+        {/* Readout */}
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[#0a1020]/50">
+          Loading
+          <span className="ipl-blink inline-block h-1.5 w-1.5 bg-yellow-400" />
+        </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   if (error) {
     return (

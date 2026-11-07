@@ -148,8 +148,41 @@ export default function PastEventsGallery({ initialEvents, initialError }: Props
         aria-label="Past events gallery"
       >
         {loading && total === 0 && (
-          <div className="text-sm text-gray-500">Loading events…</div>
-        )}
+  <div className="flex items-center gap-3">
+    <style>{`
+      @keyframes iplSpin { to { transform: rotate(360deg); } }
+      @keyframes iplBlink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: .25; } }
+      .ipl-spin-sm { animation: iplSpin 1.2s linear infinite; transform-origin: center; }
+      .ipl-blink-sm { animation: iplBlink 1.4s steps(1) infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .ipl-spin-sm, .ipl-blink-sm { animation: none !important; }
+      }
+    `}</style>
+
+    <svg viewBox="0 0 24 24" className="ipl-spin-sm h-4 w-4">
+      <circle
+        cx="12" cy="12" r="9"
+        fill="none"
+        stroke="#0a1020"
+        strokeOpacity="0.15"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="12" cy="12" r="9"
+        fill="none"
+        stroke="#facc15"
+        strokeWidth="1.5"
+        strokeDasharray="14 42"
+        strokeLinecap="butt"
+      />
+    </svg>
+
+    <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#0a1020]/50">
+      Loading.Events
+      <span className="ipl-blink-sm ml-2 inline-block h-1.5 w-1.5 align-middle bg-yellow-400" />
+    </span>
+  </div>
+)}
 
         {!loading && total === 0 && (
           <EmptyOrError error={error} onRetry={retry} />
