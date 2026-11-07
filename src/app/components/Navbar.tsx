@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,39 +20,39 @@ interface DropdownItem {
 }
 
 // Animation variants
-const ANIMATIONS = {
+const ANIMATIONS: Record<string, Variants> = {
   overlay: {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.3 } },
     exit: { opacity: 0, transition: { duration: 0.3 } },
   },
   menuContainer: {
-    hidden: { opacity: 0 },
+    hidden: { x: "100%" },
     visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+      x: 0,
+      transition: { type: "spring", stiffness: 300, damping: 30 },
     },
     exit: {
-      opacity: 0,
-      transition: { staggerChildren: 0.05, staggerDirection: -1 },
+      x: "100%",
+      transition: { duration: 0.3, ease: "easeInOut" },
     },
   },
   menuItem: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-    exit: { opacity: 0, y: 20, transition: { duration: 0.3 } },
+    hidden: { opacity: 0, x: 40 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
+    exit: { opacity: 0, x: 40, transition: { duration: 0.3 } },
   },
   dropdown: {
     hidden: { opacity: 0, height: 0 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       height: "auto",
-      transition: { duration: 0.3 }
+      transition: { duration: 0.3 },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       height: 0,
-      transition: { duration: 0.2 }
+      transition: { duration: 0.2 },
     },
   },
 };
@@ -59,25 +60,8 @@ const ANIMATIONS = {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const [isDesktop, setIsDesktop] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-
-  // Check screen size
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 1500);
-    };
-    
-    // Initial check
-    checkScreenSize();
-    
-    // Add event listener
-    window.addEventListener("resize", checkScreenSize);
-    
-    // Cleanup
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
 
   // Close on Esc
   useEffect(() => {
@@ -95,7 +79,10 @@ export default function Navbar() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -116,15 +103,15 @@ export default function Navbar() {
     { name: "Home", href: "/" },
     { name: "Team", href: "/team" },
     { name: "Research", href: "/research" },
-    { 
-      name: "Publications", 
+    {
+      name: "Publications",
       href: "#publications",
       dropdown: [
         { name: "Patent", href: "/publications/patent" },
         { name: "Journal", href: "/publications/journal" },
         { name: "Conference", href: "/publications/conference" },
         { name: "Book Chapter", href: "/publications/bookchapter" },
-      ]
+      ],
     },
     { name: "Courses", href: "/courses" },
     { name: "Events", href: "/events" },
@@ -143,79 +130,32 @@ export default function Navbar() {
     setDropdownOpen(false);
   };
 
-  const renderMenuItem = (item: MenuItem, isMobile: boolean = false) => {
+  const renderMenuItem = (item: MenuItem) => {
     if (item.dropdown) {
-      if (isMobile) {
-        // Mobile: Always expanded with blue line
-        return (
-          <div key={item.name} className="w-full">
-            {/* Publications main item */}
-            <motion.div
-              variants={ANIMATIONS.menuItem}
-              className="text-xl text-white py-2 px-4 rounded-lg"
-            >
-              {item.name}
-            </motion.div>
-            
-            {/* Dropdown items with blue line */}
-            <div className="ml-6 border-l-2 border-blue-400 pl-4 space-y-2 mt-2">
-              {item.dropdown.map((dropdownItem: DropdownItem) => (
-                <motion.a
-                  key={dropdownItem.name}
-                  href={dropdownItem.href}
-                  onClick={handleDropdownItemClick}
-                  className="block text-lg text-white/90 hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
-                  variants={ANIMATIONS.menuItem}
-                >
-                  {dropdownItem.name}
-                </motion.a>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      // Desktop: Collapsible dropdown
       return (
-        <div key={item.name} className="relative" ref={dropdownRef}>
-          <button
-            onClick={toggleDropdown}
-            className="text-xl md:text-2xl text-white hover:text-blue-300 transition-colors py-2 px-6 rounded-lg hover:bg-white/5 flex items-center gap-2"
+        <div key={item.name} className="w-full">
+          {/* Publications main item */}
+          <motion.div
+            variants={ANIMATIONS.menuItem}
+            className="text-xl text-white py-2 px-4 rounded-lg"
           >
             {item.name}
-            <motion.span
-              animate={{ rotate: dropdownOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-              className="text-sm"
-            >
-              ▼
-            </motion.span>
-          </button>
-          
-          <AnimatePresence>
-            {dropdownOpen && (
-              <motion.div
-                variants={ANIMATIONS.dropdown}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="absolute left-0 top-full mt-1 bg-gray-800/90 backdrop-blur-sm rounded-lg overflow-hidden min-w-[200px] border-l-4 border-gray-800/90"
+          </motion.div>
+
+          {/* Dropdown items with blue line */}
+          <div className="ml-6 border-l-2 border-blue-400 pl-4 space-y-2 mt-2">
+            {item.dropdown.map((dropdownItem: DropdownItem) => (
+              <motion.a
+                key={dropdownItem.name}
+                href={dropdownItem.href}
+                onClick={handleDropdownItemClick}
+                className="block text-lg text-white/90 hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 relative"
+                variants={ANIMATIONS.menuItem}
               >
-                <div className="py-2">
-                  {item.dropdown.map((dropdownItem: DropdownItem) => (
-                    <a
-                      key={dropdownItem.name}
-                      href={dropdownItem.href}
-                      onClick={handleDropdownItemClick}
-                      className="block text-white hover:text-blue-300 transition-colors py-3 px-6 hover:bg-white/5 border-l-2 border-blue-400/50 ml-2"
-                    >
-                      {dropdownItem.name}
-                    </a>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {dropdownItem.name}
+              </motion.a>
+            ))}
+          </div>
         </div>
       );
     }
@@ -225,7 +165,7 @@ export default function Navbar() {
         key={item.name}
         href={item.href}
         variants={ANIMATIONS.menuItem}
-        className={`${isMobile ? 'text-xl text-white' : 'text-xl md:text-2xl text-white'} hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5`}
+        className="text-xl text-white hover:text-blue-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5 block w-full"
         onClick={() => handleMenuItemClick(item)}
       >
         {item.name}
@@ -235,12 +175,18 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ---------------- MOBILE NAV (Below 1500px) ---------------- */}
-      <nav className={`${isDesktop ? 'hidden' : 'block'} fixed top-0 left-0 w-full bg-white/20 z-[60]`}>
+      {/* ---------------- TOP NAVBAR ---------------- */}
+      <nav className="fixed top-0 left-0 w-full bg-white/20 backdrop-blur-sm z-[60]">
         <div className="flex justify-between items-center h-16 px-4">
-          {/* Logo  prev:- /admin/dashboard  */}
+          {/* Logo */}
           <Link href="/">
-            <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
+            <Image
+              src="/nitrlogo.png"
+              className="rounded-lg cursor-pointer"
+              alt="Logo"
+              width={50}
+              height={50}
+            />
           </Link>
 
           {/* Hamburger / Cross button */}
@@ -249,7 +195,7 @@ export default function Navbar() {
             aria-label="Toggle menu"
             aria-expanded={isOpen}
             className={`flex flex-col justify-center items-center w-12 h-12 rounded-full border border-blue-500/20 bg-blue-500/10 backdrop-blur-sm transition-all
-              ${isOpen ? "fixed top-4 right-4 z-[70]" : "relative z-[60]"}`}
+              ${isOpen ? "fixed top-4 right-4 z-[80]" : "relative z-[60]"}`}
           >
             <span
               className={`block w-6 h-0.5 bg-blue-400 mb-1.5 transition-transform ${
@@ -268,112 +214,40 @@ export default function Navbar() {
             />
           </button>
         </div>
-
-        {/* Overlay + Menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <>
-              {/* Dark overlay behind button */}
-              <motion.div
-                className="fixed inset-0 bg-gray-900/95 z-40"
-                variants={ANIMATIONS.overlay}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                onClick={() => setIsOpen(false)}
-              />
-              {/* Menu layer */}
-              <motion.div
-                className="fixed inset-0 z-50 flex flex-col justify-center items-center"
-                variants={ANIMATIONS.menuContainer}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <motion.div
-                  className="flex flex-col items-start  px-6 w-full max-w-sm"
-                  variants={ANIMATIONS.menuContainer}
-                >
-                  {menuItems.map((item) => renderMenuItem(item, true))}
-                </motion.div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </nav>
 
-      {/* ---------------- DESKTOP SIDEBAR (1500px and above) ---------------- */}
-      <div className={`${isDesktop ? 'block' : 'hidden'}`}>
-        <div
-          className={`fixed top-0 left-0 h-screen w-20 flex flex-col justify-between items-center py-6 z-50 
-          ${
-            isOpen
-              ? "bg-transparent"
-              : "bg-white/10 backdrop-blur-lg border-r border-blue-400 shadow-xl"
-          }`}
-        >
-          {/* Logo  prev:- /admin  */}
-          <Link href="/">
-            <Image src="/nitrlogo.png" className="rounded-lg cursor-pointer" alt="Logo" width={50} height={50} />
-          </Link>
-          
-          {/* Desktop hamburger */}
-          {!isOpen && (
-            <button
-              onClick={toggleMenu}
-              aria-label="Open menu"
-              aria-expanded={isOpen}
-              className="flex flex-col justify-center items-center w-12 h-12 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20"
+      {/* ---------------- OVERLAY + RIGHT-SIDE MENU ---------------- */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Dark overlay */}
+            <motion.div
+              className="fixed inset-0 bg-gray-900/95 z-40"
+              variants={ANIMATIONS.overlay}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Sliding panel from the right */}
+            <motion.div
+              className="fixed top-0 right-0 h-full w-full max-w-sm bg-gray-900/95 backdrop-blur-md z-[70] overflow-y-auto"
+              variants={ANIMATIONS.menuContainer}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              <span className="block w-6 h-0.5 bg-blue-400 mb-1.5" />
-              <span className="block w-6 h-0.5 bg-blue-400" />
-              <span className="block w-6 h-0.5 bg-blue-400 mt-1.5" />
-            </button>
-          )}
-
-          <div className="h-6" />
-        </div>
-
-        {/* Overlay + Menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <>
               <motion.div
-                className="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-40"
-                variants={ANIMATIONS.overlay}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                onClick={() => setIsOpen(false)}
-              />
-
-              <motion.div
-                className="fixed inset-0 z-50 flex flex-col justify-center items-center"
+                className="flex flex-col items-start px-6 pt-24 pb-8 w-full"
                 variants={ANIMATIONS.menuContainer}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
               >
-                {/* Desktop cross at top-right only */}
-                <button
-                  onClick={() => setIsOpen(false)}
-                  aria-label="Close menu"
-                  className="absolute top-6 right-6 text-4xl text-white z-[60] hover:text-blue-300 transition-colors"
-                >
-                  &times;
-                </button>
-
-                <motion.div
-                  className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-6 max-w-4xl px-4 relative"
-                  variants={ANIMATIONS.menuContainer}
-                >
-                  {menuItems.map((item) => renderMenuItem(item))}
-                </motion.div>
+                {menuItems.map((item) => renderMenuItem(item))}
               </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
